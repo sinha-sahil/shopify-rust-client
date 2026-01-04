@@ -8,6 +8,7 @@ A Rust client library for interacting with the Shopify Admin API. Currently focu
 
 - 🔍 **Order Retrieval**: Fetch orders by ID or order name
 - ✏️ **Order Updates**: Update order properties (e.g., tags)
+- 🪝 **Webhook Support**: Parse customer and shop compliance webhooks
 - 📦 **Type-Safe**: Strongly typed models for Shopify API responses
 - 🚀 **Async/Await**: Built on `reqwest` for asynchronous HTTP requests
 - 🔐 **Secure**: Token-based authentication support
@@ -16,7 +17,7 @@ A Rust client library for interacting with the Shopify Admin API. Currently focu
 
 - 🚧 **Full Admin REST API**: Support for Products, Customers, Inventory, Fulfillments, and more
 - 🚧 **GraphQL Admin API**: Complete GraphQL API support with query builder
-- 🚧 **Webhook Support**: Handle and validate Shopify webhooks
+- 🚧 **Additional Webhooks**: Support for more webhook topics beyond compliance
 - 🚧 **Rate Limiting**: Built-in request throttling and retry logic
 
 ## Installation
@@ -32,6 +33,20 @@ Or install directly:
 
 ```bash
 cargo add shopify-client
+```
+
+## Public API
+
+The library exposes three main modules for public use:
+
+- **`ShopifyClient`** - Main client for making API calls
+- **`types`** - All type definitions organized by resource (e.g., `types::order`)
+- **`webhooks`** - Webhook parsing utilities and types
+
+```rust
+use shopify_client::ShopifyClient;           // Main client
+use shopify_client::types::order::*;         // Order types
+use shopify_client::webhooks::*;             // Webhook utilities
 ```
 
 ## Usage
@@ -107,7 +122,7 @@ async fn main() {
 
 ```rust
 use shopify_client::ShopifyClient;
-use shopify_client::services::order::types::{PatchOrderRequest, PatchOrder};
+use shopify_client::types::order::{PatchOrderRequest, PatchOrder};
 
 #[tokio::main]
 async fn main() {
@@ -136,35 +151,71 @@ async fn main() {
 }
 ```
 
+### Parse Webhooks
+
+```rust
+use shopify_client::webhooks::{parse_webhook_with_header, WebhookPayload};
+
+fn handle_webhook(topic_header: &str, payload: &str) {
+    match parse_webhook_with_header(topic_header, payload) {
+        Ok(WebhookPayload::CustomersDataRequest(data)) => {
+            println!("Customer data request for shop: {}", data.shop_domain);
+            println!("Customer: {:?}", data.customer);
+            println!("Orders requested: {:?}", data.orders_requested);
+        }
+        Ok(WebhookPayload::CustomersRedact(data)) => {
+            println!("Customer redact request for shop: {}", data.shop_domain);
+            println!("Customer to redact: {:?}", data.customer);
+            println!("Orders to redact: {:?}", data.orders_to_redact);
+        }
+        Ok(WebhookPayload::ShopRedact(data)) => {
+            println!("Shop redact request for shop: {}", data.shop_domain);
+            println!("Shop ID: {}", data.shop_id);
+        }
+        Err(e) => {
+            eprintln!("Failed to parse webhook: {:?}", e);
+        }
+    }
+}
+```
+
 ## Project Structure
 
 The library is organized into a modular structure for easy extensibility:
 
 ```
 src/
-├── lib.rs                  # Main client entry point
-├── common/                 # Shared utilities and types
+├── lib.rs                  # Main client entry point and exports
+├── types/                  # Public type definitions
+│   ├── mod.rs             # Type module exports
+│   └── order.rs           # Order-related types
+├── webhooks/              # Public webhook parsing module
+│   ├── mod.rs             # Webhook parsing functions
+│   └── types.rs           # Webhook payload types
+├── common/                # Internal shared utilities (private)
+│   ├── mod.rs
 │   ├── types.rs           # Common types (APIError, ErrorResp)
 │   └── utils.rs           # Utility functions
-└── services/              # API service modules
-    └── order/             # Order service
+└── services/              # Internal API services (private)
+    └── order/             # Order service implementation
         ├── mod.rs         # Order struct with public methods
-        ├── remote.rs      # Internal API implementation
-        └── types.rs       # Order-specific types
+        └── remote.rs      # Internal API implementation
 ```
 
 ### Design Philosophy
 
 - **Client-Based**: Initialize a `ShopifyClient` once and access services through it
+- **Clean Public API**: Three public modules - `ShopifyClient`, `types`, and `webhooks`
+- **Encapsulation**: All internal implementation (`common`, `services`) is private
 - **Service-Oriented**: Each API resource (orders, products, etc.) is its own service module
+- **Clear Separation**: Services for outgoing API calls, webhooks for incoming data parsing
 - **Type Safety**: All API responses are strongly typed with comprehensive models
-- **Separation of Concerns**: Public API in `mod.rs`, implementation details in `remote.rs`
 
 ## Data Models
 
-The library provides strongly-typed models organized by service:
+The library provides strongly-typed models organized by resource:
 
-### Order Types (`services::order::types`)
+### Order Types (`types::order`)
 
 - **Order**: Complete order information including customer, line items, fulfillments, pricing, and timestamps
 - **Customer**: Customer details (ID, email, phone, name, addresses)
@@ -175,11 +226,14 @@ The library provides strongly-typed models organized by service:
 - **Property**: Custom line item properties
 - **PatchOrderRequest** / **PatchOrder**: Request types for updating orders
 
-### Common Types (`common::types`)
+### Webhook Types (`webhooks::types`)
 
-- **APIError**: Error handling enum for server errors, parsing failures, and network issues
-- **ErrorResp**: Shopify API error response structure
-- **WebhookResponse**: Webhook handling response
+- **CustomersDataRequestPayload**: Customer data request webhook payload
+- **CustomersRedactPayload**: Customer redaction webhook payload
+- **ShopRedactPayload**: Shop redaction webhook payload
+- **WebhookPayload**: Enum containing all webhook payload types
+- **WebhookParseError**: Error type for webhook parsing failures
+- **WebhookCustomer**: Customer information in webhook payloads
 
 ## Error Handling
 

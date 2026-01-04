@@ -1,6 +1,6 @@
 use crate::{
     common::{types::APIError, utils::parse_response},
-    services::order::types::{GetOrderResp, OrderQueryResp, PatchOrderRequest},
+    types::order::{GetOrderResp, OrderQueryResp, PatchOrderRequest},
 };
 
 pub async fn patch_order(

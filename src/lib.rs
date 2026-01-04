@@ -1,7 +1,9 @@
 use std::sync::Arc;
 
 pub mod common;
-pub mod services;
+mod services;
+pub mod types;
+pub mod webhooks;
 
 pub struct ShopifyClient {
     pub order: services::order::Order,

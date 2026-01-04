@@ -1,10 +1,11 @@
 mod remote;
-pub mod types;
 
 use std::sync::Arc;
 
-use crate::common::types::APIError;
-use types::GetOrderResp;
+use crate::{
+    common::types::APIError,
+    types::order::{GetOrderResp, OrderQueryResp, PatchOrderRequest},
+};
 
 pub struct Order {
     pub shop_url: Arc<String>,
@@ -25,10 +26,7 @@ impl Order {
         remote::get_order_with_id(&self.shop_url, &self.version, &self.access_token, order_id).await
     }
 
-    pub async fn get_with_name(
-        &self,
-        order_name: &String,
-    ) -> Result<types::OrderQueryResp, APIError> {
+    pub async fn get_with_name(&self, order_name: &String) -> Result<OrderQueryResp, APIError> {
         remote::get_order_with_name(
             &self.shop_url,
             &self.version,
@@ -41,7 +39,7 @@ impl Order {
     pub async fn patch(
         &self,
         order_id: &String,
-        patch_request: &types::PatchOrderRequest,
+        patch_request: &PatchOrderRequest,
     ) -> Result<GetOrderResp, APIError> {
         remote::patch_order(
             &self.shop_url,

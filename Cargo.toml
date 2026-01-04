@@ -2,11 +2,11 @@
 name = "shopify-client"
 version = "0.1.1"
 edition = "2021"
-description = "A Rust client library for the Shopify Admin API with support for REST and GraphQL endpoints"
+description = "Modular Shopify library for Rust: API client, type-safe models, and webhook parsing utilities"
 authors = ["Sahil Sinha"]
 repository = "https://github.com/sinha-sahil/shopify-rust-client"
 license = "MIT"
-keywords = ["shopify", "api", "client", "ecommerce", "rest"]
+keywords = ["shopify", "api", "client", "ecommerce", "rest", "webhooks"]
 categories = ["api-bindings", "web-programming::http-client"]
 readme = "README.md"
 exclude = [".gitignore", ".vscode/*"]
