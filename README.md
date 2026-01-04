@@ -36,18 +36,34 @@ cargo add shopify-client
 
 ## Usage
 
+### Initialize the Client
+
+```rust
+use shopify_client::ShopifyClient;
+
+let client = ShopifyClient::new(
+    "https://your-shop.myshopify.com".to_string(),
+    "your-access-token".to_string(),
+    None, // Optional API version, defaults to "2024-07"
+);
+```
+
 ### Get Order by ID
 
 ```rust
-use shopify_client::remote::get_order_with_id;
+use shopify_client::ShopifyClient;
 
 #[tokio::main]
 async fn main() {
-    let shop_url = "https://your-shop.myshopify.com".to_string();
-    let order_id = "1234567890".to_string();
-    let access_token = "your-access-token".to_string();
+    let client = ShopifyClient::new(
+        "https://your-shop.myshopify.com".to_string(),
+        "your-access-token".to_string(),
+        None,
+    );
 
-    match get_order_with_id(&shop_url, &order_id, &access_token).await {
+    let order_id = "1234567890".to_string();
+
+    match client.order.get_with_id(&order_id).await {
         Ok(response) => {
             println!("Order: {:?}", response.order);
         }
@@ -61,15 +77,19 @@ async fn main() {
 ### Get Order by Name
 
 ```rust
-use shopify_client::remote::get_order_with_name;
+use shopify_client::ShopifyClient;
 
 #[tokio::main]
 async fn main() {
-    let shop_url = "https://your-shop.myshopify.com".to_string();
-    let order_name = "1001".to_string(); // Without the # prefix
-    let access_token = "your-access-token".to_string();
+    let client = ShopifyClient::new(
+        "https://your-shop.myshopify.com".to_string(),
+        "your-access-token".to_string(),
+        None,
+    );
 
-    match get_order_with_name(&shop_url, &order_name, &access_token).await {
+    let order_name = "1001".to_string(); // Without the # prefix
+
+    match client.order.get_with_name(&order_name).await {
         Ok(response) => {
             println!("Orders found: {}", response.orders.len());
             for order in response.orders {
@@ -86,14 +106,18 @@ async fn main() {
 ### Update Order (Patch)
 
 ```rust
-use shopify_client::remote::patch_order;
-use shopify_client::types::{PatchOrderRequest, PatchOrder};
+use shopify_client::ShopifyClient;
+use shopify_client::services::order::types::{PatchOrderRequest, PatchOrder};
 
 #[tokio::main]
 async fn main() {
-    let shop_url = "https://your-shop.myshopify.com".to_string();
+    let client = ShopifyClient::new(
+        "https://your-shop.myshopify.com".to_string(),
+        "your-access-token".to_string(),
+        None,
+    );
+
     let order_id = "1234567890".to_string();
-    let access_token = "your-access-token".to_string();
 
     let patch_request = PatchOrderRequest {
         order: PatchOrder {
@@ -101,7 +125,7 @@ async fn main() {
         },
     };
 
-    match patch_order(&shop_url, &order_id, &access_token, &patch_request).await {
+    match client.order.patch(&order_id, &patch_request).await {
         Ok(response) => {
             println!("Order updated: {:?}", response.order);
         }
@@ -112,19 +136,54 @@ async fn main() {
 }
 ```
 
+## Project Structure
+
+The library is organized into a modular structure for easy extensibility:
+
+```
+src/
+├── lib.rs                  # Main client entry point
+├── common/                 # Shared utilities and types
+│   ├── types.rs           # Common types (APIError, ErrorResp)
+│   └── utils.rs           # Utility functions
+└── services/              # API service modules
+    └── order/             # Order service
+        ├── mod.rs         # Order struct with public methods
+        ├── remote.rs      # Internal API implementation
+        └── types.rs       # Order-specific types
+```
+
+### Design Philosophy
+
+- **Client-Based**: Initialize a `ShopifyClient` once and access services through it
+- **Service-Oriented**: Each API resource (orders, products, etc.) is its own service module
+- **Type Safety**: All API responses are strongly typed with comprehensive models
+- **Separation of Concerns**: Public API in `mod.rs`, implementation details in `remote.rs`
+
 ## Data Models
 
-The library provides strongly-typed models for Shopify API responses:
+The library provides strongly-typed models organized by service:
 
-- **Order**: Complete order information including customer, line items, fulfillments, and pricing
-- **Customer**: Customer details (ID, email, phone, name)
-- **LineItem**: Product line items with quantities, prices, and properties
-- **Fulfillment**: Fulfillment tracking information
-- **PriceSet**: Multi-currency pricing information
+### Order Types (`services::order::types`)
+
+- **Order**: Complete order information including customer, line items, fulfillments, pricing, and timestamps
+- **Customer**: Customer details (ID, email, phone, name, addresses)
+- **LineItem**: Product line items with quantities, prices, properties, and fulfillment status
+- **OrderFulfillment**: Fulfillment tracking with tracking numbers, URLs, and shipment status
+- **Address**: Billing and shipping address information
+- **PriceSet**: Multi-currency pricing with shop and presentment money
+- **Property**: Custom line item properties
+- **PatchOrderRequest** / **PatchOrder**: Request types for updating orders
+
+### Common Types (`common::types`)
+
+- **APIError**: Error handling enum for server errors, parsing failures, and network issues
+- **ErrorResp**: Shopify API error response structure
+- **WebhookResponse**: Webhook handling response
 
 ## Error Handling
 
-The library uses a custom `APIError` enum for error handling:
+The library uses a custom `APIError` enum for comprehensive error handling:
 
 ```rust
 pub enum APIError {
@@ -133,6 +192,8 @@ pub enum APIError {
     NetworkError,
 }
 ```
+
+Errors are returned through `Result<T, APIError>` for easy error propagation and handling.
 
 ## Authentication
 

@@ -1,0 +1,157 @@
+name: Release Pipeline
+
+on:
+  push:
+    branches: [release]
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  lint-and-build:
+    runs-on: ubuntu-latest
+    environment: publish
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Read current version from Cargo.toml
+        id: current_version
+        run: |
+          echo "📖 Reading current version from Cargo.toml..."
+          CURRENT_VERSION=$(grep '^version = ' Cargo.toml | head -1 | sed 's/version = "\(.*\)"/\1/')
+          echo "Current version: $CURRENT_VERSION"
+          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Bump version in Cargo.toml
+        id: new_version
+        run: |
+          echo "🔢 Analyzing commit message for version bump type..."
+          CURRENT_VERSION="${{ steps.current_version.outputs.current_version }}"
+          # Get the latest commit message
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          echo "Latest commit message: $COMMIT_MSG"
+
+          # Parse version parts (assuming semantic versioning x.y.z)
+          IFS='.' read -ra VERSION_PARTS <<< "$CURRENT_VERSION"
+          MAJOR=${VERSION_PARTS[0]}
+          MINOR=${VERSION_PARTS[1]}
+          PATCH=${VERSION_PARTS[2]}
+
+          # Determine bump type based on commit message
+          if [[ "$COMMIT_MSG" =~ ^feat!\s*: ]]; then
+              echo "🚀 Breaking change detected (feat!:) - MAJOR bump"
+              NEW_MAJOR=$((MAJOR + 1))
+              NEW_MINOR=0
+              NEW_PATCH=0
+              BUMP_TYPE="major"
+          elif [[ "$COMMIT_MSG" =~ ^feat\s*: ]]; then
+              echo "✨ Feature detected (feat:) - MINOR bump"
+              NEW_MAJOR=$MAJOR
+              NEW_MINOR=$((MINOR + 1))
+              NEW_PATCH=0
+              BUMP_TYPE="minor"
+          elif [[ "$COMMIT_MSG" =~ ^fix\s*: ]]; then
+              echo "🐛 Fix detected (fix:) - PATCH bump"
+              NEW_MAJOR=$MAJOR
+              NEW_MINOR=$MINOR
+              NEW_PATCH=$((PATCH + 1))
+              BUMP_TYPE="patch"
+          else
+              echo "📦 No conventional commit pattern detected - defaulting to PATCH bump"
+              NEW_MAJOR=$MAJOR
+              NEW_MINOR=$MINOR
+              NEW_PATCH=$((PATCH + 1))
+              BUMP_TYPE="patch"
+          fi
+
+          NEW_VERSION="$NEW_MAJOR.$NEW_MINOR.$NEW_PATCH"
+
+          echo "Bumping from $CURRENT_VERSION to $NEW_VERSION ($BUMP_TYPE)"
+
+          # Update Cargo.toml
+          sed -i "s/version = \"$CURRENT_VERSION\"/version = \"$NEW_VERSION\"/" Cargo.toml
+
+          # Verify the change
+          echo "Updated Cargo.toml:"
+          grep '^version = ' Cargo.toml | head -1
+
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "bump_type=$BUMP_TYPE" >> $GITHUB_OUTPUT
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: "build-cache"
+          cache-on-failure: true
+
+      - name: Check code formatting
+        run: cargo fmt --all -- --check
+
+      - name: Run Clippy lints
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+      - name: Run tests
+        run: cargo test --all-features
+
+      - name: Build release
+        run: cargo build --release
+
+      - name: Commit version bump
+        id: commit
+        run: |
+          NEW_VERSION="${{ steps.new_version.outputs.new_version }}"
+          echo "📝 Committing version bump to $NEW_VERSION..."
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add Cargo.toml Cargo.lock
+          git commit -m "chore: bump version to $NEW_VERSION"
+
+          echo "🏷️ Creating git tag v$NEW_VERSION..."
+          git tag "v$NEW_VERSION"
+
+          echo "✅ Committed and tagged version $NEW_VERSION"
+
+      - name: Publish to crates.io
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: |
+          echo "📦 Publishing to crates.io..."
+          cargo publish --token "${CARGO_REGISTRY_TOKEN}"
+          echo "✅ Successfully published to crates.io"
+
+      - name: Push changes and tags
+        run: |
+          echo "⬆️ Pushing commit and tags to GitHub..."
+          git push origin release
+          git push origin --tags
+          echo "✅ Successfully pushed changes"
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.new_version.outputs.new_version }}
+          release_name: Release v${{ steps.new_version.outputs.new_version }}
+          body: |
+            ## Changes in v${{ steps.new_version.outputs.new_version }}
+
+            Version bump: ${{ steps.new_version.outputs.bump_type }}
+
+            See [CHANGELOG](https://github.com/sinha-sahil/shopify-rust-client/blob/release/CHANGELOG.md) for details.
+          draft: false
+          prerelease: false
