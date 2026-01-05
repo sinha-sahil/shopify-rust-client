@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 pub mod common;
-mod services;
+pub mod services;
 pub mod types;
 pub mod webhooks;
 

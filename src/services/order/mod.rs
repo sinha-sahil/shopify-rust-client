@@ -1,4 +1,4 @@
-mod remote;
+pub mod remote;
 
 use std::sync::Arc;
 
