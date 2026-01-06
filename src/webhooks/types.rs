@@ -56,3 +56,26 @@ impl std::fmt::Display for WebhookParseError {
 }
 
 impl std::error::Error for WebhookParseError {}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum VerificationError {
+    MissingHmacHeader,
+    InvalidBase64,
+    InvalidHmac,
+}
+
+impl std::fmt::Display for VerificationError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            VerificationError::MissingHmacHeader => {
+                write!(f, "Missing X-Shopify-Hmac-SHA256 header")
+            }
+            VerificationError::InvalidBase64 => {
+                write!(f, "Invalid base64 encoding in HMAC header")
+            }
+            VerificationError::InvalidHmac => write!(f, "HMAC verification failed"),
+        }
+    }
+}
+
+impl std::error::Error for VerificationError {}

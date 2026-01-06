@@ -1,10 +1,14 @@
 pub mod types;
+pub mod verify;
 
 use serde_json::Value;
 use types::{
     CustomersDataRequestPayload, CustomersRedactPayload, ShopRedactPayload, WebhookParseError,
     WebhookPayload,
 };
+
+pub use types::VerificationError;
+pub use verify::{verify_hmac, verify_hmac_from_headers};
 
 pub enum WebhookTopic {
     CustomersDataRequest,
