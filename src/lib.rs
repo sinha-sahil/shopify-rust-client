@@ -7,6 +7,7 @@ pub mod webhooks;
 
 pub struct ShopifyClient {
     pub order: services::order::Order,
+    pub subscription: services::subscription::Subscription,
 }
 
 impl ShopifyClient {
@@ -18,6 +19,11 @@ impl ShopifyClient {
 
         ShopifyClient {
             order: services::order::Order::new(
+                Arc::clone(&shop_url_arc),
+                Arc::clone(&api_version_arc),
+                Arc::clone(&access_token_arc),
+            ),
+            subscription: services::subscription::Subscription::new(
                 Arc::clone(&shop_url_arc),
                 Arc::clone(&api_version_arc),
                 Arc::clone(&access_token_arc),
