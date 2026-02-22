@@ -139,19 +139,21 @@ pub async fn get(
     let query = format!(
         r#"
         query {{
-            bulkOperation(id: "{}") {{
-                id
-                status
-                errorCode
-                createdAt
-                completedAt
-                objectCount
-                rootObjectCount
-                fileSize
-                url
-                partialDataUrl
-                query
-                type
+            node(id: "{}") {{
+                ... on BulkOperation {{
+                    id
+                    status
+                    errorCode
+                    createdAt
+                    completedAt
+                    objectCount
+                    rootObjectCount
+                    fileSize
+                    url
+                    partialDataUrl
+                    query
+                    type
+                }}
             }}
         }}
     "#,

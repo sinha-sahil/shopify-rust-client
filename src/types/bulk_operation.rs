@@ -139,7 +139,7 @@ pub struct CancelPayload {
 
 #[derive(serde::Deserialize, Debug)]
 pub struct GetBulkOperationResp {
-    #[serde(rename = "bulkOperation")]
+    #[serde(rename = "node")]
     pub bulk_operation: Option<BulkOperation>,
 }
 
