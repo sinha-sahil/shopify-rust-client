@@ -1,665 +1,418 @@
-# Shopify Rust Client
+<div align="center">
 
-A Rust client library for interacting with the Shopify Admin API. Supports both REST and GraphQL APIs with a focus on app development and order management.
+# shopify-client
 
-## Features
+**A type-safe, async Rust client for the Shopify Admin API**
 
-### Current Support
+[![Crates.io](https://img.shields.io/crates/v/shopify-client.svg)](https://crates.io/crates/shopify-client)
+[![Documentation](https://docs.rs/shopify-client/badge.svg)](https://docs.rs/shopify-client)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Shopify API](https://img.shields.io/badge/Shopify%20API-2026--01-green.svg)](https://shopify.dev/docs/api/admin)
 
-#### Core APIs
-- 📦 **Orders** (REST): Get orders by ID/name, update order properties
-- 💳 **Subscriptions** (GraphQL): Recurring/usage/combined subscriptions, trial management, usage tracking
-- 🎁 **Discounts** (GraphQL): Create and manage automatic app discounts
-- ⚙️ **App Installation** (GraphQL): App metadata, metafields management
-- 🛒 **Cart Transform** (GraphQL): Create cart transformations with metafield support (create & update)
-- 🔧 **Shopify Functions** (GraphQL): List available functions
-- 🏪 **Shop** (GraphQL): Fetch shop owner details, plan info, and billing address
+[Getting Started](#getting-started) &bull; [API Coverage](#api-coverage) &bull; [Examples](#examples) &bull; [Bulk Operations](#bulk-operations) &bull; [Docs](https://docs.rs/shopify-client)
 
-#### Developer Experience
-- 📦 **Type-Safe**: Strongly typed models for all API responses
-- 🚀 **Async/Await**: Built on `reqwest` for asynchronous HTTP requests
-- 🔐 **Secure**: Token-based authentication support
-- 🪝 **Webhook Support**: Parse customer and shop compliance webhooks
-- 🔍 **Request Callbacks**: Optional before/after hooks for observability and logging
-- 🎯 **Client-Based**: Single client instance with organized service modules
+</div>
 
-### Roadmap
+---
 
-- 🚧 **Products API**: Product management and variants
-- 🚧 **Customers API**: Customer management and search
-- 🚧 **Inventory API**: Inventory tracking and locations
-- 🚧 **Fulfillments API**: Order fulfillment operations
-- 🚧 **Additional Webhooks**: Support for more webhook topics beyond compliance
-- 🚧 **Rate Limiting**: Built-in request throttling and retry logic
+```rust
+let client = ShopifyClient::new(shop_url, access_token, None);
 
-## Installation
+// One client, every API
+let order    = client.order.get_with_id(&id).await?;
+let products = client.bulk_operation.export_products(None).await?;
+let shop     = client.shop.get().await?;
+```
 
-Add this to your `Cargo.toml`:
+## Highlights
+
+| | |
+|---|---|
+| **9 service modules** | Orders, Subscriptions, Discounts, Cart Transforms, App Installation, Shopify Functions, Shop, Storefront Tokens, Bulk Operations |
+| **Bulk Operations** | Prebuilt export templates for products, orders, collections, customers, inventory, and draft orders with typed JSONL parsing |
+| **Typed everything** | Strongly typed requests, responses, filters, and JSONL export lines &mdash; no raw strings |
+| **Async / await** | Built on `reqwest` with `tokio` &mdash; non-blocking by default |
+| **Webhook parsing** | HMAC-verified parsing for customer data, customer redact, and shop redact compliance webhooks |
+| **Request callbacks** | Optional before/after hooks for logging, metrics, and observability |
+
+## Getting Started
+
+Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-shopify-client = "0.1.0"
+shopify-client = "0.16.0"
 ```
-
-Or install directly:
-
-```bash
-cargo add shopify-client
-```
-
-## Public API
-
-The library exposes the following public modules:
-
-- **`ShopifyClient`** - Main client for making API calls
-- **`types`** - All type definitions organized by resource (e.g., `types::order`, `types::subscription`)
-- **`webhooks`** - Webhook parsing utilities and types
-- **Callback Types** - `BeforeRequestCallback`, `AfterRequestCallback`, `RequestCallbacks`
-
-```rust
-use shopify_client::ShopifyClient;                    // Main client
-use shopify_client::types::order::*;                  // Order types
-use shopify_client::types::subscription::*;           // Subscription types
-use shopify_client::types::shop::*;                   // Shop types
-use shopify_client::webhooks::*;                      // Webhook utilities
-use shopify_client::{BeforeRequestCallback, AfterRequestCallback};  // Callback types
-```
-
-## Usage
-
-### Initialize the Client
 
 ```rust
 use shopify_client::ShopifyClient;
 
-let client = ShopifyClient::new(
-    "https://your-shop.myshopify.com".to_string(),
-    "your-access-token".to_string(),
-    None, // Optional API version, defaults to "2026-01"
-);
+#[tokio::main]
+async fn main() {
+    let client = ShopifyClient::new(
+        "https://your-shop.myshopify.com".to_string(),
+        "your-access-token".to_string(),
+        None, // defaults to API version 2026-01
+    );
+
+    // Every service is a field on the client
+    let order = client.order.get_with_id(&"1234567890".to_string()).await;
+    let shop  = client.shop.get().await;
+}
 ```
 
-### Initialize with Request Callbacks
+## API Coverage
+
+| Service | Protocol | Operations |
+|---------|----------|------------|
+| **`client.order`** | REST | `get_with_id`, `get_with_name`, `patch` |
+| **`client.subscription`** | GraphQL | `create_recurring`, `create_usage`, `create_combined`, `cancel`, `extend_trial`, `update_capped_amount`, `create_usage_record`, `get_active_subscriptions` |
+| **`client.discount`** | GraphQL | `create_automatic_app_discount`, `update_automatic_app_discount`, `get_discount_nodes` |
+| **`client.app_installation`** | GraphQL | `get_current`, `set_metafields`, `get_metafield`, `list_metafields` |
+| **`client.cart_transform`** | GraphQL | `create`, `set_metafields` |
+| **`client.shopify_functions`** | GraphQL | `list` |
+| **`client.shop`** | GraphQL | `get` |
+| **`client.storefront_access_token`** | GraphQL | `create`, `delete` |
+| **`client.bulk_operation`** | GraphQL | `run_query`, `run_mutation`, `cancel`, `get`, `list`, `create_staged_upload`, `export_*`, `stream_*` |
+
+## Examples
+
+### Orders
+
+```rust
+// Get by ID
+let resp = client.order.get_with_id(&order_id).await?;
+println!("Order: {} - {}", resp.order.name, resp.order.email);
+
+// Get by name
+let resp = client.order.get_with_name(&"1001".to_string()).await?;
+
+// Update tags
+let patch = PatchOrderRequest {
+    order: PatchOrder {
+        tags: vec!["processed".into(), "priority".into()],
+    },
+};
+client.order.patch(&order_id, &patch).await?;
+```
+
+### Subscriptions
+
+```rust
+use shopify_client::types::subscription::*;
+
+let request = CreateRecurringSubscriptionRequest {
+    name: "Premium Plan".to_string(),
+    price: 29.99,
+    currency_code: "USD".to_string(),
+    return_url: "https://your-app.com/billing".to_string(),
+    interval: Some(AppPricingInterval::Every30Days),
+    trial_days: Some(7),
+    test: Some(true),
+    discount: None,
+};
+
+let resp = client.subscription.create_recurring(&request).await?;
+println!("Confirm at: {}", resp.confirmation_url);
+```
+
+### Shop Info
+
+```rust
+let resp = client.shop.get().await?;
+println!("{} ({})", resp.shop.name, resp.shop.plan.display_name);
+println!("Owner: {}", resp.shop.account_owner.email);
+```
+
+<details>
+<summary><strong>More examples: Discounts, Cart Transforms, Metafields</strong></summary>
+
+#### Create Automatic Discount
+
+```rust
+use shopify_client::types::discount::DiscountAutomaticAppInput;
+
+let input = DiscountAutomaticAppInput {
+    title: "Summer Sale".to_string(),
+    function_handle: "my-discount-function".to_string(),
+    starts_at: "2024-06-01T00:00:00Z".to_string(),
+    ends_at: None,
+    combines_with: None,
+    discount_classes: None,
+    context: None,
+    metafields: None,
+    applies_on_subscription: None,
+    applies_on_one_time_purchase: None,
+    recurring_cycle_limit: None,
+};
+client.discount.create_automatic_app_discount(&input).await?;
+```
+
+#### Create Cart Transform
+
+```rust
+use shopify_client::types::cart_transform::{CartTransformCreateInput, MetafieldInput};
+
+let input = CartTransformCreateInput::new()
+    .with_function_handle("my-cart-transform".to_string())
+    .with_block_on_failure(false)
+    .with_metafields(vec![
+        MetafieldInput::new(
+            "$app".to_string(), "config".to_string(),
+            r#"{"bundleDiscount": 10}"#.to_string(), "json".to_string(),
+        ),
+    ]);
+client.cart_transform.create(&input).await?;
+```
+
+#### Update Metafields with CAS
+
+```rust
+use shopify_client::types::cart_transform::MetafieldsSetInput;
+
+let metafields = vec![
+    MetafieldsSetInput::new(
+        owner_id.clone(), "$app".to_string(), "config".to_string(),
+        r#"{"bundleDiscount": 20}"#.to_string(), "json".to_string(),
+    ).with_compare_digest(Some("fd6b737...".to_string())),
+];
+client.cart_transform.set_metafields(&metafields).await?;
+```
+
+</details>
+
+## Bulk Operations
+
+The bulk operations API lets you export or import millions of objects asynchronously. This client provides **two layers**:
+
+| Layer | For | Example |
+|-------|-----|---------|
+| **Prebuilt templates** | Common exports with zero GraphQL | `client.bulk_operation.export_products(params)` |
+| **Raw operations** | Custom queries / mutations | `client.bulk_operation.run_query(graphql, None)` |
+
+### Export Templates
+
+Six prebuilt exports, each with typed filter params and comprehensive field coverage:
+
+| Template | Resource | Children | Filter Struct |
+|----------|----------|----------|---------------|
+| `export_products` | Products | Variants, Media | `ProductQueryParams` |
+| `export_orders` | Orders | LineItems | `OrderQueryParams` |
+| `export_collections` | Collections | Products | `CollectionQueryParams` |
+| `export_customers` | Customers | Addresses | `CustomerQueryParams` |
+| `export_inventory_items` | InventoryItems | Levels | `InventoryItemQueryParams` |
+| `export_draft_orders` | DraftOrders | LineItems | `DraftOrderQueryParams` |
+
+### Typed Filters
+
+Build search filters with type safety &mdash; no raw query strings:
+
+```rust
+use shopify_client::types::order::*;
+use shopify_client::common::query_filter::DateFilter;
+
+let params = OrderQueryParams {
+    status: Some(OrderStatus::Open),
+    financial_status: Some(OrderFinancialStatus::Paid),
+    created_at: Some(DateFilter::OnOrAfter("2025-01-01".to_string())),
+    ..Default::default()
+};
+
+client.bulk_operation.export_orders(Some(&params)).await?;
+```
+
+Available filter primitives:
+
+| Filter | Variants |
+|--------|----------|
+| `DateFilter` | `Exact`, `Before`, `After`, `OnOrBefore`, `OnOrAfter`, `Range` |
+| `NumericFilter<T>` | `Exact`, `GreaterThan`, `LessThan`, `GreaterOrEqual`, `LessOrEqual` |
+
+### Full Export Workflow
+
+Bulk exports are a three-step process: start the export, poll until Shopify finishes, then consume the result. The JSONL result URL points to a temporary file hosted by Shopify that can be multi-GB for large shops (millions of products/orders). The `stream_*` methods download and parse this file in chunks so your app uses constant memory regardless of file size.
+
+```rust
+use shopify_client::ShopifyClient;
+use shopify_client::types::bulk_operation::{BulkOperationStatus, ProductExportLine};
+use shopify_client::types::product::{ProductQueryParams, ProductStatus};
+
+let client = ShopifyClient::new(shop_url, access_token, None);
+
+// 1. Start the export
+let params = ProductQueryParams {
+    status: Some(ProductStatus::Active),
+    ..Default::default()
+};
+let resp = client.bulk_operation.export_products(Some(&params)).await?;
+let op = resp.bulk_operation_run_query.bulk_operation.ok_or("no operation")?;
+
+// 2. Poll until Shopify finishes processing
+let url = loop {
+    let status = client.bulk_operation.get(&op.id).await?;
+    match status.bulk_operation.as_ref().map(|o| &o.status) {
+        Some(BulkOperationStatus::Completed) => {
+            break status.bulk_operation.and_then(|o| o.url).ok_or("no url")?;
+        }
+        Some(BulkOperationStatus::Failed) => return Err("export failed".into()),
+        _ => tokio::time::sleep(std::time::Duration::from_secs(2)).await,
+    }
+};
+
+// 3. Stream results — constant memory, processes batch_size items at a time
+client.bulk_operation.stream_products(&url, 50, |batch| async move {
+    // batch: Vec<ProductExportLine> with up to 50 items
+    for item in &batch {
+        match item {
+            ProductExportLine::Product(p) => println!("Product: {}", p.title),
+            ProductExportLine::Variant(v) => println!("  Variant: {:?}", v.sku),
+            ProductExportLine::Media(m)   => println!("  Media: {:?}", m.media_content_type),
+        }
+    }
+    Ok(())
+}).await?;
+```
+
+Each prebuilt export has a matching `stream_*` method that takes a `batch_size` and an async callback:
+
+| Export | Stream | Line Enum |
+|--------|--------|-----------|
+| `export_products` | `stream_products` | `ProductExportLine` |
+| `export_orders` | `stream_orders` | `OrderExportLine` |
+| `export_collections` | `stream_collections` | `CollectionExportLine` |
+| `export_customers` | `stream_customers` | `CustomerExportLine` |
+| `export_inventory_items` | `stream_inventory_items` | `InventoryItemExportLine` |
+| `export_draft_orders` | `stream_draft_orders` | `DraftOrderExportLine` |
+
+All `stream_*` methods accumulate up to `batch_size` parsed items before invoking your async callback. The last batch may contain fewer items. Lines that fail to parse are silently skipped.
+
+```rust
+// Process 100 products at a time — great for DB writes, API calls, S3 uploads
+client.bulk_operation.stream_products(&url, 100, |batch| async move {
+    save_to_db(&batch).await?;
+    Ok(())
+}).await?;
+```
+
+### Custom Bulk Queries
+
+For queries the templates don't cover, use `run_query` with your own GraphQL and `stream_jsonl` to consume the result:
+
+```rust
+let query = r#"{
+  products {
+    edges {
+      node { id title tags }
+    }
+  }
+}"#;
+
+client.bulk_operation.run_query(query, None).await?;
+// ... poll until complete, get the url ...
+
+// Stream raw JSON lines in batches of 100
+client.bulk_operation.stream_jsonl(&url, 100, |lines| async move {
+    write_to_file(&lines).await?;
+    Ok(())
+}).await?;
+```
+
+If you already have JSONL content in memory (e.g. read from a local file), each export enum has a `parse_line()` method:
+
+```rust
+use shopify_client::types::bulk_operation::ProductExportLine;
+
+let parsed = ProductExportLine::parse_line(line)?;
+```
+
+## Webhooks
+
+Parse Shopify compliance webhooks with type safety:
+
+```rust
+use shopify_client::webhooks::{parse_webhook_with_header, WebhookPayload};
+
+match parse_webhook_with_header(topic_header, payload) {
+    Ok(WebhookPayload::CustomersDataRequest(data)) => { /* ... */ }
+    Ok(WebhookPayload::CustomersRedact(data))      => { /* ... */ }
+    Ok(WebhookPayload::ShopRedact(data))            => { /* ... */ }
+    Err(e) => eprintln!("Parse error: {:?}", e),
+}
+```
+
+## Request Callbacks
+
+Add observability with before/after hooks on every request:
 
 ```rust
 use shopify_client::ShopifyClient;
 use std::sync::Arc;
 
-let before_request = Arc::new(|url: &str, body: Option<&str>, _headers: &reqwest::header::HeaderMap| {
-    println!("→ Request to {}", url);
-    if let Some(body) = body {
-        println!("  Body: {}", body);
-    }
-});
-
-let after_request = Arc::new(|url: &str, response: &str, _headers: &reqwest::header::HeaderMap| {
-    println!("← Response from {} ({} bytes)", url, response.len());
-});
-
 let client = ShopifyClient::new_with_callbacks(
-    "https://your-shop.myshopify.com".to_string(),
-    "your-access-token".to_string(),
-    None,
-    Some(before_request),
-    Some(after_request),
+    shop_url, access_token, None,
+    Some(Arc::new(|url, body, _headers| {
+        println!("-> {} ({} bytes)", url, body.map_or(0, |b| b.len()));
+    })),
+    Some(Arc::new(|url, resp, _headers| {
+        println!("<- {} ({} bytes)", url, resp.len());
+    })),
 );
 ```
 
-### Get Order by ID
+- Fires on every REST and GraphQL request
+- Access token is **never** passed to callbacks
+- Panic-safe &mdash; callback panics won't crash your app
+
+## Error Handling
+
+All methods return `Result<T, APIError>`:
 
 ```rust
-use shopify_client::ShopifyClient;
-
-#[tokio::main]
-async fn main() {
-    let client = ShopifyClient::new(
-        "https://your-shop.myshopify.com".to_string(),
-        "your-access-token".to_string(),
-        None,
-    );
-
-    let order_id = "1234567890".to_string();
-
-    match client.order.get_with_id(&order_id).await {
-        Ok(response) => {
-            println!("Order: {:?}", response.order);
-        }
-        Err(e) => {
-            eprintln!("Error: {:?}", e);
-        }
-    }
-}
-```
-
-### Get Order by Name
-
-```rust
-use shopify_client::ShopifyClient;
-
-#[tokio::main]
-async fn main() {
-    let client = ShopifyClient::new(
-        "https://your-shop.myshopify.com".to_string(),
-        "your-access-token".to_string(),
-        None,
-    );
-
-    let order_name = "1001".to_string(); // Without the # prefix
-
-    match client.order.get_with_name(&order_name).await {
-        Ok(response) => {
-            println!("Orders found: {}", response.orders.len());
-            for order in response.orders {
-                println!("Order {}: {}", order.name, order.id);
-            }
-        }
-        Err(e) => {
-            eprintln!("Error: {:?}", e);
-        }
-    }
-}
-```
-
-### Update Order (Patch)
-
-```rust
-use shopify_client::ShopifyClient;
-use shopify_client::types::order::{PatchOrderRequest, PatchOrder};
-
-#[tokio::main]
-async fn main() {
-    let client = ShopifyClient::new(
-        "https://your-shop.myshopify.com".to_string(),
-        "your-access-token".to_string(),
-        None,
-    );
-
-    let order_id = "1234567890".to_string();
-
-    let patch_request = PatchOrderRequest {
-        order: PatchOrder {
-            tags: vec!["processed".to_string(), "priority".to_string()],
-        },
-    };
-
-    match client.order.patch(&order_id, &patch_request).await {
-        Ok(response) => {
-            println!("Order updated: {:?}", response.order);
-        }
-        Err(e) => {
-            eprintln!("Error: {:?}", e);
-        }
-    }
-}
-```
-
-### Create Recurring Subscription
-
-```rust
-use shopify_client::ShopifyClient;
-use shopify_client::types::subscription::{CreateRecurringSubscriptionRequest, AppPricingInterval};
-
-#[tokio::main]
-async fn main() {
-    let client = ShopifyClient::new(
-        "https://your-shop.myshopify.com".to_string(),
-        "your-access-token".to_string(),
-        None,
-    );
-
-    let request = CreateRecurringSubscriptionRequest {
-        name: "Premium Plan".to_string(),
-        price: 29.99,
-        currency_code: "USD".to_string(),
-        return_url: "https://your-app.com/billing".to_string(),
-        interval: Some(AppPricingInterval::Every30Days),
-        trial_days: Some(7),
-        test: Some(true),
-        discount: None,
-    };
-
-    match client.subscription.create_recurring(&request).await {
-        Ok(response) => {
-            println!("Subscription created: {:?}", response);
-            println!("Confirmation URL: {}", response.confirmation_url);
-        }
-        Err(e) => {
-            eprintln!("Error: {:?}", e);
-        }
-    }
-}
-```
-
-### Create Automatic App Discount
-
-```rust
-use shopify_client::ShopifyClient;
-use shopify_client::types::discount::DiscountAutomaticAppInput;
-
-#[tokio::main]
-async fn main() {
-    let client = ShopifyClient::new(
-        "https://your-shop.myshopify.com".to_string(),
-        "your-access-token".to_string(),
-        None,
-    );
-
-    let input = DiscountAutomaticAppInput {
-        title: "Summer Sale".to_string(),
-        function_handle: "my-discount-function".to_string(),
-        starts_at: "2024-06-01T00:00:00Z".to_string(),
-        ends_at: None,
-        combines_with: None,
-        discount_classes: None,
-        context: None,
-        metafields: None,
-        applies_on_subscription: None,
-        applies_on_one_time_purchase: None,
-        recurring_cycle_limit: None,
-    };
-
-    match client.discount.create_automatic_app_discount(&input).await {
-        Ok(response) => {
-            println!("Discount created: {:?}", response);
-        }
-        Err(e) => {
-            eprintln!("Error: {:?}", e);
-        }
-    }
-}
-```
-
-### Create Cart Transform with Metafields
-
-```rust
-use shopify_client::ShopifyClient;
-use shopify_client::types::cart_transform::{CartTransformCreateInput, MetafieldInput};
-
-#[tokio::main]
-async fn main() {
-    let client = ShopifyClient::new(
-        "https://your-shop.myshopify.com".to_string(),
-        "your-access-token".to_string(),
-        None,
-    );
-
-    // Create metafields to configure the cart transform function
-    let metafields = vec![
-        MetafieldInput::new(
-            "$app".to_string(),
-            "config".to_string(),
-            r#"{"bundleDiscount": 10, "minQuantity": 2}"#.to_string(),
-            "json".to_string(),
-        ),
-    ];
-
-    let input = CartTransformCreateInput::new()
-        .with_function_handle("my-cart-transform".to_string())
-        .with_block_on_failure(false)
-        .with_metafields(metafields);
-
-    match client.cart_transform.create(&input).await {
-        Ok(response) => {
-            println!("Cart transform created: {:?}", response);
-            if let Some(cart_transform) = response.cart_transform_create.cart_transform {
-                println!("ID: {}", cart_transform.id);
-                println!("Function ID: {}", cart_transform.function_id);
-            }
-        }
-        Err(e) => {
-            eprintln!("Error: {:?}", e);
-        }
-    }
-}
-```
-
-### Update Metafields on Existing Cart Transform
-
-```rust
-use shopify_client::ShopifyClient;
-use shopify_client::types::cart_transform::MetafieldsSetInput;
-
-#[tokio::main]
-async fn main() {
-    let client = ShopifyClient::new(
-        "https://your-shop.myshopify.com".to_string(),
-        "your-access-token".to_string(),
-        None,
-    );
-
-    let cart_transform_id = "gid://shopify/CartTransform/123456".to_string();
-
-    // Update existing metafield and create a new one
-    let metafields = vec![
-        MetafieldsSetInput::new(
-            cart_transform_id.clone(),
-            "$app".to_string(),
-            "config".to_string(),
-            r#"{"bundleDiscount": 15, "minQuantity": 3}"#.to_string(),
-            "json".to_string(),
-        ),
-        MetafieldsSetInput::new(
-            cart_transform_id.clone(),
-            "$app".to_string(),
-            "settings".to_string(),
-            r#"{"enabled": true, "priority": 1}"#.to_string(),
-            "json".to_string(),
-        ),
-    ];
-
-    match client.cart_transform.set_metafields(&metafields).await {
-        Ok(response) => {
-            println!("Metafields updated successfully");
-            if let Some(metafields) = response.metafields_set.metafields {
-                for metafield in metafields {
-                    println!("  {}.{} = {}", metafield.namespace, metafield.key, metafield.value);
-                }
-            }
-        }
-        Err(e) => {
-            eprintln!("Error: {:?}", e);
-        }
-    }
-}
-```
-
-### Update Metafields with Compare-and-Set (CAS)
-
-For safe concurrent updates, use the `compare_digest` field to ensure the metafield hasn't changed since you last read it:
-
-```rust
-use shopify_client::ShopifyClient;
-use shopify_client::types::cart_transform::MetafieldsSetInput;
-
-#[tokio::main]
-async fn main() {
-    let client = ShopifyClient::new(
-        "https://your-shop.myshopify.com".to_string(),
-        "your-access-token".to_string(),
-        None,
-    );
-
-    let cart_transform_id = "gid://shopify/CartTransform/123456".to_string();
-
-    // Update with compare-and-set to prevent race conditions
-    let metafields = vec![
-        MetafieldsSetInput::new(
-            cart_transform_id.clone(),
-            "$app".to_string(),
-            "config".to_string(),
-            r#"{"bundleDiscount": 20, "minQuantity": 4}"#.to_string(),
-            "json".to_string(),
-        )
-        .with_compare_digest(Some("fd6b73725c9e83da2d2bcfaf90b27305b9058a48a1565639aa00d718d4caf8e8".to_string())),
-    ];
-
-    match client.cart_transform.set_metafields(&metafields).await {
-        Ok(response) => {
-            println!("Metafields updated with CAS");
-            if let Some(metafields) = response.metafields_set.metafields {
-                for metafield in metafields {
-                    println!("  {}.{} (digest: {:?})", 
-                        metafield.namespace, 
-                        metafield.key, 
-                        metafield.compare_digest
-                    );
-                }
-            }
-        }
-        Err(e) => {
-            eprintln!("Error (may indicate digest mismatch): {:?}", e);
-        }
-    }
-}
-```
-
-### Get Shop Owner Details
-
-```rust
-use shopify_client::ShopifyClient;
-
-#[tokio::main]
-async fn main() {
-    let client = ShopifyClient::new(
-        "https://your-shop.myshopify.com".to_string(),
-        "your-access-token".to_string(),
-        None,
-    );
-
-    match client.shop.get().await {
-        Ok(response) => {
-            let shop = response.shop;
-            println!("Shop Name: {}", shop.name);
-            println!("Owner: {}", shop.shop_owner_name);
-            println!("Email: {}", shop.email);
-            println!("Contact Email: {}", shop.contact_email);
-            println!("Domain: {}", shop.myshopify_domain);
-            println!("Primary Domain: {}", shop.primary_domain.host);
-            println!("Plan: {}", shop.plan.display_name);
-            println!("Account Owner: {} ({})", shop.account_owner.name, shop.account_owner.email);
-            if let Some(city) = &shop.shop_address.city {
-                println!("Location: {}", city);
-            }
-        }
-        Err(e) => {
-            eprintln!("Error: {:?}", e);
-        }
-    }
-}
-```
-
-### Parse Webhooks
-
-```rust
-use shopify_client::webhooks::{parse_webhook_with_header, WebhookPayload};
-
-fn handle_webhook(topic_header: &str, payload: &str) {
-    match parse_webhook_with_header(topic_header, payload) {
-        Ok(WebhookPayload::CustomersDataRequest(data)) => {
-            println!("Customer data request for shop: {}", data.shop_domain);
-            println!("Customer: {:?}", data.customer);
-            println!("Orders requested: {:?}", data.orders_requested);
-        }
-        Ok(WebhookPayload::CustomersRedact(data)) => {
-            println!("Customer redact request for shop: {}", data.shop_domain);
-            println!("Customer to redact: {:?}", data.customer);
-            println!("Orders to redact: {:?}", data.orders_to_redact);
-        }
-        Ok(WebhookPayload::ShopRedact(data)) => {
-            println!("Shop redact request for shop: {}", data.shop_domain);
-            println!("Shop ID: {}", data.shop_id);
-        }
-        Err(e) => {
-            eprintln!("Failed to parse webhook: {:?}", e);
-        }
-    }
+pub enum APIError {
+    ServerError { errors: String },  // Shopify returned an error
+    FailedToParse,                   // Response couldn't be deserialized
+    NetworkError,                    // Connection / timeout failure
 }
 ```
 
 ## Project Structure
 
-The library is organized into a modular structure for easy extensibility:
-
 ```
 src/
-├── lib.rs                  # Main client entry point and exports
-├── types/                  # Public type definitions
-│   ├── mod.rs             # Type module exports
-│   ├── order.rs           # Order types (REST)
-│   ├── subscription.rs    # Subscription types (GraphQL)
-│   ├── discount.rs        # Discount types (GraphQL)
-│   ├── app_installation.rs # App installation types (GraphQL)
-│   ├── cart_transform.rs  # Cart transform types (GraphQL)
-│   ├── shop.rs            # Shop types (GraphQL)
-│   └── shopify_functions.rs # Shopify functions types (GraphQL)
-├── webhooks/              # Public webhook parsing module
-│   ├── mod.rs             # Webhook parsing functions
-│   └── types.rs           # Webhook payload types
-├── common/                # Internal shared utilities (private)
-│   ├── mod.rs
-│   ├── types.rs           # Common types (APIError, RequestCallbacks)
-│   ├── utils.rs           # Utility functions
-│   └── http.rs            # Centralized GraphQL execution
-└── services/              # Internal API services (private)
-    ├── order/             # Order service (REST)
-    ├── subscription/      # Subscription service (GraphQL)
-    ├── discount/          # Discount service (GraphQL)
-    ├── app_installation/  # App installation service (GraphQL)
-    ├── cart_transform/    # Cart transform service (GraphQL)
-    ├── shop/              # Shop service (GraphQL)
-    └── shopify_functions/ # Shopify functions service (GraphQL)
-        ├── mod.rs         # Service struct with public methods
-        └── remote.rs      # Internal API implementation
+├── lib.rs                       # ShopifyClient entry point
+├── types/                       # Public type definitions
+│   ├── order.rs                 #   Order types + query enums (OrderStatus, ...)
+│   ├── product.rs               #   ProductStatus, ProductQueryParams
+│   ├── collection.rs            #   CollectionType, CollectionQueryParams
+│   ├── customer.rs              #   CustomerAccountState, CustomerQueryParams
+│   ├── inventory.rs             #   InventoryItemQueryParams
+│   ├── draft_order.rs           #   DraftOrderFilterStatus, DraftOrderQueryParams
+│   ├── subscription.rs          #   Subscription requests & responses
+│   ├── discount.rs              #   Discount inputs & responses
+│   ├── app_installation.rs      #   Metafield management types
+│   ├── cart_transform.rs        #   Cart transform inputs & CAS metafields
+│   ├── shop.rs                  #   Shop, StaffMember, ShopPlan, ...
+│   ├── shopify_functions.rs     #   Function listing types
+│   ├── storefront_access_token.rs  # Token create/delete types
+│   └── bulk_operation.rs        #   Bulk ops: core types, JSONL export types
+├── services/                    # Internal service implementations
+│   ├── order/                   #   REST: get, patch
+│   ├── subscription/            #   GraphQL: create, cancel, extend, ...
+│   ├── discount/                #   GraphQL: create, update, list
+│   ├── app_installation/        #   GraphQL: metafields CRUD
+│   ├── cart_transform/          #   GraphQL: create, set metafields
+│   ├── shop/                    #   GraphQL: get shop info
+│   ├── shopify_functions/       #   GraphQL: list functions
+│   ├── storefront_access_token/ #   GraphQL: create, delete tokens
+│   └── bulk_operation/          #   GraphQL: queries, mutations, exports
+├── webhooks/                    #   Webhook parsing & types
+└── common/                      #   Shared HTTP, error types, query filters
 ```
-
-### Design Philosophy
-
-- **Client-Based**: Initialize a `ShopifyClient` once and access services through it
-- **Clean Public API**: Three public modules - `ShopifyClient`, `types`, and `webhooks`
-- **Encapsulation**: All internal implementation (`common`, `services`) is private
-- **Service-Oriented**: Each API resource (orders, products, etc.) is its own service module
-- **Clear Separation**: Services for outgoing API calls, webhooks for incoming data parsing
-- **Type Safety**: All API responses are strongly typed with comprehensive models
-
-## Data Models
-
-The library provides strongly-typed models organized by resource:
-
-### Order Types (`types::order`)
-
-- **Order**: Complete order information including customer, line items, fulfillments, pricing, and timestamps
-- **Customer**: Customer details (ID, email, phone, name, addresses)
-- **LineItem**: Product line items with quantities, prices, properties, and fulfillment status
-- **OrderFulfillment**: Fulfillment tracking with tracking numbers, URLs, and shipment status
-- **Address**: Billing and shipping address information
-- **PriceSet**: Multi-currency pricing with shop and presentment money
-- **Property**: Custom line item properties
-- **PatchOrderRequest** / **PatchOrder**: Request types for updating orders
-
-### Subscription Types (`types::subscription`)
-
-- **CreateRecurringSubscriptionRequest**: Create recurring app subscriptions
-- **CreateUsageSubscriptionRequest**: Create usage-based subscriptions
-- **CreateCombinedSubscriptionRequest**: Create subscriptions with both recurring and usage pricing
-- **CreateUsageRecordRequest**: Record usage for usage-based subscriptions
-- **AppPricingInterval**: Subscription billing intervals (Every30Days, Annual)
-- **CreateSubscriptionResp**: Subscription creation response with confirmation URL
-- **ActiveSubscriptionsResp**: List of active app subscriptions
-
-### Discount Types (`types::discount`)
-
-- **DiscountAutomaticAppInput**: Create automatic app discounts
-- **DiscountAutomaticAppUpdateInput**: Update existing automatic app discounts
-- **DiscountAutomaticAppCreateResp**: Discount creation response
-- **DiscountNodesResp**: List discounts with pagination support
-
-### App Installation Types (`types::app_installation`)
-
-- **GetCurrentAppInstallationResp**: Current app installation details
-- **MetafieldInput**: Input for creating/updating metafields
-- **SetMetafieldsResp**: Metafield operation response
-- **GetMetafieldResp** / **ListMetafieldsResp**: Metafield retrieval responses
-
-### Cart Transform Types (`types::cart_transform`)
-
-- **CartTransformCreateInput**: Create cart transformation functions
-- **CartTransformCreateResp**: Cart transform creation response
-- **MetafieldInput**: Metafield input for cart transform creation
-- **MetafieldsSetInput**: Update or create metafields on existing resources
-- **MetafieldsSetResp**: Metafields set response with updated metafield data
-- **Metafield**: Metafield data with timestamps and compare digest for CAS
-
-### Shop Types (`types::shop`)
-
-- **GetShopResp**: Response wrapper for the shop query
-- **Shop**: Shop information including owner details, plan, and addresses
-- **StaffMember**: Account owner details (ID, name, email)
-- **Domain**: Primary domain information
-- **ShopPlan**: Billing plan details (display name, partner development, Shopify Plus)
-- **ShopAddress**: Shop billing address
-
-### Shopify Functions Types (`types::shopify_functions`)
-
-- **ShopifyFunctionsResp**: List of available Shopify Functions
-
-### Webhook Types (`webhooks::types`)
-
-- **CustomersDataRequestPayload**: Customer data request webhook payload
-- **CustomersRedactPayload**: Customer redaction webhook payload
-- **ShopRedactPayload**: Shop redaction webhook payload
-- **WebhookPayload**: Enum containing all webhook payload types
-- **WebhookParseError**: Error type for webhook parsing failures
-- **WebhookCustomer**: Customer information in webhook payloads
-
-## Error Handling
-
-The library uses a custom `APIError` enum for comprehensive error handling:
-
-```rust
-pub enum APIError {
-    ServerError { errors: String },
-    FailedToParse,
-    NetworkError,
-}
-```
-
-Errors are returned through `Result<T, APIError>` for easy error propagation and handling.
-
-## Authentication
-
-This client requires a Shopify Admin API access token. You can obtain one by:
-
-1. Creating a custom app in your Shopify admin panel
-2. Generating an Admin API access token
-3. Granting the necessary permissions (e.g., `read_orders`, `write_orders`)
-
-## Request Callbacks
-
-The library supports optional before/after request callbacks for logging, monitoring, and observability:
-
-```rust
-use shopify_client::ShopifyClient;
-use std::sync::Arc;
-
-let before = Arc::new(|url: &str, body: Option<&str>, headers: &reqwest::header::HeaderMap| {
-    println!("Making request to: {}", url);
-    if let Some(body) = body {
-        println!("Request body: {}", body);
-    }
-});
-
-let after = Arc::new(|url: &str, response_body: &str, headers: &reqwest::header::HeaderMap| {
-    println!("Received response from: {}", url);
-    println!("Response size: {} bytes", response_body.len());
-});
-
-let client = ShopifyClient::new_with_callbacks(
-    "https://your-shop.myshopify.com".to_string(),
-    "your-access-token".to_string(),
-    None,
-    Some(before),
-    Some(after),
-);
-```
-
-**Features:**
-- Callbacks are synchronous closures that fire before and after every request
-- Access token is NOT passed to callbacks for security
-- Callbacks use panic catching to prevent user errors from crashing requests
-- Works for both REST and GraphQL requests
-- Optional - use `new()` for no callbacks, `new_with_callbacks()` for callbacks
-
-## API Version
-
-Currently uses Shopify Admin API version **2026-01**.
 
 ## Requirements
 
-- Rust 1.56 or later (2021 edition)
-- Dependencies:
-  - `reqwest` (with JSON support)
-  - `serde` (with derive feature)
-  - `serde_json`
+- **Rust** 2021 edition (1.56+)
+- **Dependencies:** `reqwest`, `serde`, `serde_json`, `hmac`, `sha2`, `base64`
 
 ## Contributing
 
@@ -667,8 +420,12 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-This project is licensed under your preferred license.
+This project is licensed under the [MIT License](LICENSE).
 
-## Disclaimer
+---
 
-This is an unofficial Shopify client library. For official SDKs and documentation, visit [Shopify's Developer Documentation](https://shopify.dev/).
+<div align="center">
+
+*This is an unofficial client library. For official Shopify documentation, visit [shopify.dev](https://shopify.dev/).*
+
+</div>

@@ -16,6 +16,7 @@ pub struct ShopifyClient {
     pub shopify_functions: services::shopify_functions::ShopifyFunctions,
     pub shop: services::shop::Shop,
     pub storefront_access_token: services::storefront_access_token::StorefrontAccessToken,
+    pub bulk_operation: services::bulk_operation::BulkOperation,
 }
 
 impl ShopifyClient {
@@ -80,6 +81,12 @@ impl ShopifyClient {
                 Arc::clone(&callbacks_arc),
             ),
             storefront_access_token: services::storefront_access_token::StorefrontAccessToken::new(
+                Arc::clone(&shop_url_arc),
+                Arc::clone(&api_version_arc),
+                Arc::clone(&access_token_arc),
+                Arc::clone(&callbacks_arc),
+            ),
+            bulk_operation: services::bulk_operation::BulkOperation::new(
                 Arc::clone(&shop_url_arc),
                 Arc::clone(&api_version_arc),
                 Arc::clone(&access_token_arc),

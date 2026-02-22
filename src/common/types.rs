@@ -14,7 +14,7 @@ pub struct ErrorResp {
     pub errors: String,
 }
 
-#[derive(serde::Deserialize, Debug)]
+#[derive(serde::Deserialize, Debug, Clone)]
 pub struct UserError {
     pub field: Option<Vec<String>>,
     pub message: String,

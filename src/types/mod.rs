@@ -1,7 +1,13 @@
 pub mod app_installation;
+pub mod bulk_operation;
 pub mod cart_transform;
+pub mod collection;
+pub mod customer;
 pub mod discount;
+pub mod draft_order;
+pub mod inventory;
 pub mod order;
+pub mod product;
 pub mod shop;
 pub mod shopify_functions;
 pub mod storefront_access_token;

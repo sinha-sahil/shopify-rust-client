@@ -1,4 +1,5 @@
 pub mod app_installation;
+pub mod bulk_operation;
 pub mod cart_transform;
 pub mod discount;
 pub mod order;

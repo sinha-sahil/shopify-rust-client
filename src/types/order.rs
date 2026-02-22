@@ -156,3 +156,133 @@ pub struct PatchOrderRequest {
 pub struct PatchOrder {
     pub tags: Vec<String>,
 }
+
+// region: Order Query Enums & Params
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum OrderStatus {
+    Open,
+    Closed,
+    Cancelled,
+    Any,
+}
+
+impl std::fmt::Display for OrderStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            OrderStatus::Open => write!(f, "open"),
+            OrderStatus::Closed => write!(f, "closed"),
+            OrderStatus::Cancelled => write!(f, "cancelled"),
+            OrderStatus::Any => write!(f, "any"),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum OrderFinancialStatus {
+    Authorized,
+    Paid,
+    Pending,
+    PartiallyPaid,
+    PartiallyRefunded,
+    Refunded,
+    Voided,
+    Any,
+}
+
+impl std::fmt::Display for OrderFinancialStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            OrderFinancialStatus::Authorized => write!(f, "authorized"),
+            OrderFinancialStatus::Paid => write!(f, "paid"),
+            OrderFinancialStatus::Pending => write!(f, "pending"),
+            OrderFinancialStatus::PartiallyPaid => write!(f, "partially_paid"),
+            OrderFinancialStatus::PartiallyRefunded => write!(f, "partially_refunded"),
+            OrderFinancialStatus::Refunded => write!(f, "refunded"),
+            OrderFinancialStatus::Voided => write!(f, "voided"),
+            OrderFinancialStatus::Any => write!(f, "any"),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum OrderFulfillmentStatus {
+    Shipped,
+    Partial,
+    Unshipped,
+    Any,
+    Unfulfilled,
+}
+
+impl std::fmt::Display for OrderFulfillmentStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            OrderFulfillmentStatus::Shipped => write!(f, "shipped"),
+            OrderFulfillmentStatus::Partial => write!(f, "partial"),
+            OrderFulfillmentStatus::Unshipped => write!(f, "unshipped"),
+            OrderFulfillmentStatus::Any => write!(f, "any"),
+            OrderFulfillmentStatus::Unfulfilled => write!(f, "unfulfilled"),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct OrderQueryParams {
+    pub status: Option<OrderStatus>,
+    pub financial_status: Option<OrderFinancialStatus>,
+    pub fulfillment_status: Option<OrderFulfillmentStatus>,
+    pub created_at: Option<crate::common::query_filter::DateFilter>,
+    pub updated_at: Option<crate::common::query_filter::DateFilter>,
+    pub processed_at: Option<crate::common::query_filter::DateFilter>,
+    pub tag: Option<String>,
+    pub source_name: Option<String>,
+    pub risk_level: Option<String>,
+    pub chargeback_status: Option<String>,
+    pub test: Option<bool>,
+}
+
+impl OrderQueryParams {
+    pub fn to_query_string(&self) -> Option<String> {
+        let mut parts = Vec::new();
+        if let Some(v) = &self.status {
+            parts.push(format!("status:{}", v));
+        }
+        if let Some(v) = &self.financial_status {
+            parts.push(format!("financial_status:{}", v));
+        }
+        if let Some(v) = &self.fulfillment_status {
+            parts.push(format!("fulfillment_status:{}", v));
+        }
+        if let Some(v) = &self.created_at {
+            parts.push(format!("created_at:{}", v));
+        }
+        if let Some(v) = &self.updated_at {
+            parts.push(format!("updated_at:{}", v));
+        }
+        if let Some(v) = &self.processed_at {
+            parts.push(format!("processed_at:{}", v));
+        }
+        if let Some(v) = &self.tag {
+            parts.push(format!("tag:{}", v));
+        }
+        if let Some(v) = &self.source_name {
+            parts.push(format!("source_name:{}", v));
+        }
+        if let Some(v) = &self.risk_level {
+            parts.push(format!("risk_level:{}", v));
+        }
+        if let Some(v) = &self.chargeback_status {
+            parts.push(format!("chargeback_status:{}", v));
+        }
+        if let Some(v) = &self.test {
+            parts.push(format!("test:{}", v));
+        }
+        if parts.is_empty() {
+            None
+        } else {
+            Some(parts.join(" "))
+        }
+    }
+}
+
+// endregion
