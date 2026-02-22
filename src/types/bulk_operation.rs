@@ -301,6 +301,24 @@ pub struct BulkExportWeight {
 }
 
 #[derive(serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct BulkExportEmailAddress {
+    pub email_address: Option<String>,
+}
+
+#[derive(serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct BulkExportPhoneNumber {
+    pub phone_number: Option<String>,
+}
+
+#[derive(serde::Deserialize, Debug, Clone)]
+pub struct BulkExportCount {
+    pub count: i32,
+    pub precision: String,
+}
+
+#[derive(serde::Deserialize, Debug, Clone)]
 pub struct BulkExportSelectedOption {
     pub name: String,
     pub value: String,
@@ -374,8 +392,6 @@ pub struct BulkExportProductVariant {
     pub taxable: Option<bool>,
     pub tax_code: Option<String>,
     pub available_for_sale: Option<bool>,
-    pub weight: Option<f64>,
-    pub weight_unit: Option<String>,
     pub selected_options: Option<Vec<BulkExportSelectedOption>>,
     pub inventory_item: Option<BulkExportInventoryItemRef>,
     pub image: Option<BulkExportImage>,
@@ -484,7 +500,7 @@ pub struct BulkExportOrder {
     pub presentment_currency_code: Option<String>,
     pub subtotal_price_set: Option<BulkExportMoneyBag>,
     pub total_price_set: Option<BulkExportMoneyBag>,
-    pub total_discount_set: Option<BulkExportMoneyBag>,
+    pub total_discounts_set: Option<BulkExportMoneyBag>,
     pub total_tax_set: Option<BulkExportMoneyBag>,
     pub total_shipping_price_set: Option<BulkExportMoneyBag>,
     pub total_refunded_set: Option<BulkExportMoneyBag>,
@@ -600,9 +616,8 @@ pub struct BulkExportCollection {
     pub description_html: Option<String>,
     pub sort_order: Option<String>,
     pub template_suffix: Option<String>,
-    pub products_count: Option<i32>,
+    pub products_count: Option<BulkExportCount>,
     pub updated_at: Option<String>,
-    pub published_at: Option<String>,
     pub seo: Option<BulkExportSeo>,
     pub image: Option<BulkExportImage>,
 }
@@ -646,21 +661,19 @@ impl CollectionExportLine {
 #[serde(rename_all = "camelCase")]
 pub struct BulkExportCustomer {
     pub id: String,
-    pub email: Option<String>,
+    pub default_email_address: Option<BulkExportEmailAddress>,
     pub first_name: Option<String>,
     pub last_name: Option<String>,
     pub display_name: Option<String>,
-    pub phone: Option<String>,
+    pub default_phone_number: Option<BulkExportPhoneNumber>,
     pub note: Option<String>,
     pub tags: Option<Vec<String>>,
     pub state: Option<String>,
     pub tax_exempt: Option<bool>,
     pub verified_email: Option<bool>,
-    pub accepts_marketing: Option<bool>,
     pub locale: Option<String>,
-    pub orders_count: Option<String>,
-    pub total_spent: Option<String>,
-    pub total_spent_v2: Option<BulkExportMoney>,
+    pub number_of_orders: Option<String>,
+    pub amount_spent: Option<BulkExportMoney>,
     pub created_at: Option<String>,
     pub updated_at: Option<String>,
     pub default_address: Option<BulkExportMailingAddress>,
@@ -731,9 +744,15 @@ pub struct BulkExportInventoryLevel {
     pub id: String,
     #[serde(rename = "__parentId")]
     pub parent_id: String,
-    pub available: Option<i32>,
+    pub quantities: Option<Vec<BulkExportInventoryQuantity>>,
     pub location: Option<BulkExportInventoryLocation>,
     pub updated_at: Option<String>,
+}
+
+#[derive(serde::Deserialize, Debug, Clone)]
+pub struct BulkExportInventoryQuantity {
+    pub name: String,
+    pub quantity: i32,
 }
 
 #[derive(serde::Deserialize, Debug, Clone)]
@@ -784,7 +803,7 @@ pub struct BulkExportDraftOrder {
     pub subtotal_price_set: Option<BulkExportMoneyBag>,
     pub total_price_set: Option<BulkExportMoneyBag>,
     pub total_tax_set: Option<BulkExportMoneyBag>,
-    pub total_discount_set: Option<BulkExportMoneyBag>,
+    pub total_discounts_set: Option<BulkExportMoneyBag>,
     pub total_shipping_price_set: Option<BulkExportMoneyBag>,
     pub customer: Option<BulkExportOrderCustomer>,
     pub shipping_address: Option<BulkExportMailingAddress>,

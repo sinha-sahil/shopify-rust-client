@@ -282,13 +282,24 @@ pub async fn create_staged_upload(
 // region: Export Template Queries
 
 fn build_export_query(resource: &str, query_body: &str, filter: Option<&str>) -> String {
-    let query_arg = filter
-        .map(|f| format!(", query: \"{}\"", f))
-        .unwrap_or_default();
+    let mut args = Vec::new();
+
+    if resource == "inventoryItems" {
+        args.push("first: 1".to_string());
+    }
+    if let Some(f) = filter {
+        args.push(format!("query: \"{}\"", f));
+    }
+
+    let args_str = if args.is_empty() {
+        String::new()
+    } else {
+        format!("({})", args.join(", "))
+    };
 
     format!(
         r#"{{
-  {}({}){} {{
+  {}{} {{
     edges {{
       node {{
         {}
@@ -296,14 +307,7 @@ fn build_export_query(resource: &str, query_body: &str, filter: Option<&str>) ->
     }}
   }}
 }}"#,
-        resource,
-        if resource == "inventoryItems" {
-            "first: 1"
-        } else {
-            ""
-        },
-        query_arg,
-        query_body
+        resource, args_str, query_body
     )
 }
 
@@ -366,8 +370,6 @@ pub fn products_query(filter: Option<&str>) -> String {
               taxable
               taxCode
               availableForSale
-              weight
-              weightUnit
               selectedOptions {
                 name
                 value
@@ -474,7 +476,7 @@ pub fn orders_query(filter: Option<&str>) -> String {
           shopMoney { amount currencyCode }
           presentmentMoney { amount currencyCode }
         }
-        totalDiscountSet {
+        totalDiscountsSet {
           shopMoney { amount currencyCode }
           presentmentMoney { amount currencyCode }
         }
@@ -585,9 +587,11 @@ pub fn collections_query(filter: Option<&str>) -> String {
         descriptionHtml
         sortOrder
         templateSuffix
-        productsCount
+        productsCount {
+          count
+          precision
+        }
         updatedAt
-        publishedAt
         seo {
           title
           description
@@ -616,21 +620,23 @@ pub fn collections_query(filter: Option<&str>) -> String {
 
 pub fn customers_query(filter: Option<&str>) -> String {
     let body = r#"id
-        email
+        defaultEmailAddress {
+          emailAddress
+        }
         firstName
         lastName
         displayName
-        phone
+        defaultPhoneNumber {
+          phoneNumber
+        }
         note
         tags
         state
         taxExempt
         verifiedEmail
-        acceptsMarketing
         locale
-        ordersCount
-        totalSpent
-        totalSpentV2 {
+        numberOfOrders
+        amountSpent {
           amount
           currencyCode
         }
@@ -676,7 +682,10 @@ pub fn inventory_items_query(filter: Option<&str>) -> String {
           edges {
             node {
               id
-              available
+              quantities(names: ["available"]) {
+                name
+                quantity
+              }
               location {
                 id
                 name
@@ -716,7 +725,7 @@ pub fn draft_orders_query(filter: Option<&str>) -> String {
           shopMoney { amount currencyCode }
           presentmentMoney { amount currencyCode }
         }
-        totalDiscountSet {
+        totalDiscountsSet {
           shopMoney { amount currencyCode }
           presentmentMoney { amount currencyCode }
         }
