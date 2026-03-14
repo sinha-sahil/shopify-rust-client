@@ -348,6 +348,18 @@ pub fn products_query(filter: Option<&str>) -> String {
           name
           values
         }
+        category {
+          id
+          name
+          fullName
+          isLeaf
+          isRoot
+          isArchived
+          level
+          parentId
+          ancestorIds
+          childrenIds
+        }
         featuredMedia {
           preview {
             image {
