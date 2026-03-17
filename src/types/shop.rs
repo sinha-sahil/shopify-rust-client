@@ -17,8 +17,9 @@ pub struct Shop {
     pub primary_domain: Domain,
     pub account_owner: StaffMember,
     pub plan: ShopPlan,
-    #[serde(rename = "billingAddress")]
+    #[serde(rename = "shopAddress")]
     pub shop_address: ShopAddress,
+    pub setup_required: bool,
 }
 
 #[derive(serde::Deserialize, Debug)]
@@ -37,7 +38,7 @@ pub struct Domain {
 #[derive(serde::Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct ShopPlan {
-    pub display_name: String,
+    pub public_display_name: String,
     pub partner_development: bool,
     pub shopify_plus: bool,
 }
@@ -52,4 +53,39 @@ pub struct ShopAddress {
     pub zip: Option<String>,
     pub phone: Option<String>,
     pub company: Option<String>,
+}
+
+#[derive(serde::Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct GetShopStatusResp {
+    pub shop: ShopStatusInfo,
+    pub online_store: OnlineStoreInfo,
+}
+
+#[derive(serde::Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct ShopStatusInfo {
+    pub name: String,
+    pub email: String,
+    pub myshopify_domain: String,
+    pub plan: ShopPlan,
+    pub setup_required: bool,
+    pub primary_domain: ShopDomain,
+}
+
+#[derive(serde::Deserialize, Debug)]
+pub struct ShopDomain {
+    pub host: String,
+    pub url: String,
+}
+
+#[derive(serde::Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct OnlineStoreInfo {
+    pub password_protection: OnlineStorePasswordProtection,
+}
+
+#[derive(serde::Deserialize, Debug)]
+pub struct OnlineStorePasswordProtection {
+    pub enabled: bool,
 }

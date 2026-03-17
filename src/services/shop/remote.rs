@@ -3,7 +3,7 @@ use crate::{
         http::execute_graphql,
         types::{APIError, RequestCallbacks},
     },
-    types::shop::GetShopResp,
+    types::shop::{GetShopResp, GetShopStatusResp},
 };
 use serde_json::json;
 
@@ -31,12 +31,13 @@ pub async fn get_shop(
                     name
                     email
                 }
+                setupRequired
                 plan {
-                    displayName
+                    publicDisplayName
                     partnerDevelopment
                     shopifyPlus
                 }
-                billingAddress {
+                shopAddress {
                     address1
                     address2
                     city
@@ -45,6 +46,43 @@ pub async fn get_shop(
                     zip
                     phone
                     company
+                }
+            }
+        }
+    "#
+    .to_string();
+
+    let variables = json!({});
+
+    execute_graphql(shop_url, version, access_token, callbacks, query, variables).await
+}
+
+pub async fn get_shop_status(
+    shop_url: &String,
+    version: &String,
+    access_token: &String,
+    callbacks: &RequestCallbacks,
+) -> Result<GetShopStatusResp, APIError> {
+    let query = r#"
+        query {
+            shop {
+                name
+                email
+                myshopifyDomain
+                plan {
+                    partnerDevelopment
+                    publicDisplayName
+                    shopifyPlus
+                }
+                setupRequired
+                primaryDomain {
+                    host
+                    url
+                }
+            }
+            onlineStore {
+                passwordProtection {
+                    enabled
                 }
             }
         }

@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use crate::{
     common::types::{APIError, RequestCallbacks},
-    types::shop::GetShopResp,
+    types::shop::{GetShopResp, GetShopStatusResp},
 };
 
 pub struct Shop {
@@ -31,6 +31,16 @@ impl Shop {
 
     pub async fn get(&self) -> Result<GetShopResp, APIError> {
         remote::get_shop(
+            &self.shop_url,
+            &self.version,
+            &self.access_token,
+            &self.callbacks,
+        )
+        .await
+    }
+
+    pub async fn get_status(&self) -> Result<GetShopStatusResp, APIError> {
+        remote::get_shop_status(
             &self.shop_url,
             &self.version,
             &self.access_token,
