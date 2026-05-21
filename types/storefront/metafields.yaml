@@ -1,0 +1,363 @@
+# Metafield types for Shopify Storefront API
+# Non-top file - must use full paths for all references
+
+Metafields:
+  # MetafieldReference is a UNION type in GraphQL
+  MetafieldReferenceType:
+    type: string
+    description: 'Type of resource a metafield references (discriminator for union)'
+    enum:
+      - Collection
+      - GenericFile
+      - MediaImage
+      - Metaobject
+      - Model3d
+      - Page
+      - Product
+      - ProductVariant
+      - Video
+
+  # Named enum types for __typename fields to avoid duplicate TypenameEnum
+  MetafieldParentResourceTypename:
+    type: string
+    description: 'GraphQL type name for metafield parent resources'
+    enum:
+      - Article
+      - Blog
+      - Cart
+      - Collection
+      - Customer
+      - Location
+      - Market
+      - Order
+      - Page
+      - Product
+      - ProductVariant
+      - Shop
+
+  MetafieldReferenceTypename:
+    type: string
+    description: 'GraphQL type name for metafield references'
+    enum:
+      - Collection
+      - GenericFile
+      - MediaImage
+      - Metaobject
+      - Model3d
+      - Page
+      - Product
+      - ProductVariant
+      - Video
+
+  Metafield:
+    type: object
+    description: 'A metafield representing custom metadata attached to a resource'
+    required:
+      - id
+      - namespace
+      - key
+      - type
+      - value
+    properties:
+      id:
+        type: string
+        description: 'Globally unique identifier'
+      namespace:
+        type: string
+        description: 'Container for a group of metafields'
+      key:
+        type: string
+        description: 'Unique identifier within the namespace'
+      value:
+        type: string
+        description: 'Value stored as a string (may be JSON for complex types)'
+      type:
+        type: string
+        description: 'Metafield type (e.g., single_line_text_field, json, number_integer)'
+      description:
+        type: string
+        description: 'Description of the metafield'
+      createdAt:
+        type: string
+        format: date-time
+        description: 'When the metafield was created'
+      updatedAt:
+        type: string
+        format: date-time
+        description: 'When the metafield was last updated'
+      parentResource:
+        $ref: './types/storefront/metafields.yaml#/Metafields/MetafieldParentResource'
+        description: 'The resource the metafield is attached to'
+      reference:
+        $ref: './types/storefront/metafields.yaml#/Metafields/MetafieldReference'
+        description: 'Referenced object if type is a resource reference'
+      references:
+        $ref: './types/storefront/metafields.yaml#/Metafields/MetafieldReferenceConnection'
+        description: 'List of references if type is a resource reference list'
+
+  # Union type for metafield parent resources
+  MetafieldParentResource:
+    type: object
+    description: 'Union type for resources that can have metafields. Check __typename.'
+    properties:
+      __typename:
+        $ref: './types/storefront/metafields.yaml#/Metafields/MetafieldParentResourceTypename'
+        description: 'The GraphQL type name'
+      id:
+        type: string
+      title:
+        type: string
+      handle:
+        type: string
+
+  # MetafieldReference is a UNION - the actual item can be many types
+  MetafieldReference:
+    type: object
+    description: 'A reference to another resource from a metafield. Check __typename for actual type.'
+    properties:
+      __typename:
+        $ref: './types/storefront/metafields.yaml#/Metafields/MetafieldReferenceTypename'
+        description: 'The GraphQL type name'
+      # Common fields
+      id:
+        type: string
+      # Collection/Product/Page fields
+      title:
+        type: string
+      handle:
+        type: string
+      # Image/Media fields
+      url:
+        type: string
+      alt:
+        type: string
+      width:
+        type: integer
+      height:
+        type: integer
+      # GenericFile fields
+      mimeType:
+        type: string
+      originalFileSize:
+        type: integer
+      # Metaobject fields
+      type:
+        type: string
+      # MediaImage specific
+      image:
+        $ref: './types/storefront/common.yaml#/Common/Image'
+      # Video specific
+      sources:
+        type: array
+        items:
+          $ref: './types/storefront/products.yaml#/Products/VideoSource'
+      previewImage:
+        $ref: './types/storefront/common.yaml#/Common/Image'
+      # Model3d specific
+      model3dSources:
+        type: array
+        items:
+          $ref: './types/storefront/products.yaml#/Products/Model3dSource'
+
+  GenericFile:
+    type: object
+    description: 'A generic file reference'
+    required:
+      - id
+      - url
+    properties:
+      id:
+        type: string
+      url:
+        type: string
+        description: 'URL of the file'
+      alt:
+        type: string
+      mimeType:
+        type: string
+      originalFileSize:
+        type: integer
+        description: 'File size in bytes'
+      previewImage:
+        $ref: './types/storefront/common.yaml#/Common/Image'
+
+  MetafieldReferenceConnection:
+    type: object
+    description: 'Paginated list of metafield references'
+    required:
+      - nodes
+    properties:
+      edges:
+        type: array
+        items:
+          $ref: './types/storefront/metafields.yaml#/Metafields/MetafieldReferenceEdge'
+      nodes:
+        type: array
+        items:
+          $ref: './types/storefront/metafields.yaml#/Metafields/MetafieldReference'
+      pageInfo:
+        $ref: './types/storefront/common.yaml#/Common/PageInfo'
+
+  MetafieldReferenceEdge:
+    type: object
+    description: 'An edge in a metafield reference connection'
+    required:
+      - node
+    properties:
+      node:
+        $ref: './types/storefront/metafields.yaml#/Metafields/MetafieldReference'
+      cursor:
+        type: string
+
+  # Metaobject types
+  Metaobject:
+    type: object
+    description: 'A metaobject instance based on a MetaobjectDefinition'
+    required:
+      - id
+      - handle
+      - type
+      - fields
+    properties:
+      id:
+        type: string
+        description: 'Globally unique identifier'
+      handle:
+        type: string
+        description: 'Unique handle (useful as custom ID)'
+      type:
+        type: string
+        description: 'The type of the metaobject'
+      updatedAt:
+        type: string
+        format: date-time
+        description: 'When the metaobject was last updated'
+      fields:
+        type: array
+        items:
+          $ref: './types/storefront/metafields.yaml#/Metafields/MetaobjectField'
+        description: 'All object fields with defined values'
+      field:
+        $ref: './types/storefront/metafields.yaml#/Metafields/MetaobjectField'
+        description: 'Access a single field by key'
+      onlineStoreUrl:
+        type: string
+        description: 'URL on the online store (for renderable metaobjects)'
+      seo:
+        $ref: './types/storefront/metafields.yaml#/Metafields/MetaobjectSEO'
+        description: 'SEO information (for renderable metaobjects)'
+
+  MetaobjectSEO:
+    type: object
+    description: 'SEO information for a metaobject'
+    properties:
+      title:
+        $ref: './types/storefront/metafields.yaml#/Metafields/MetaobjectField'
+        description: 'The SEO title field'
+      description:
+        $ref: './types/storefront/metafields.yaml#/Metafields/MetaobjectField'
+        description: 'The meta description field'
+
+  MetaobjectField:
+    type: object
+    description: 'A field in a metaobject'
+    required:
+      - key
+      - type
+    properties:
+      key:
+        type: string
+        description: 'The field key'
+      value:
+        type: string
+        description: 'The field value'
+      type:
+        type: string
+        description: 'Field type (e.g., single_line_text_field, file_reference)'
+      reference:
+        $ref: './types/storefront/metafields.yaml#/Metafields/MetafieldReference'
+        description: 'Referenced object if field is a reference type'
+      references:
+        $ref: './types/storefront/metafields.yaml#/Metafields/MetafieldReferenceConnection'
+        description: 'List of references if field is a reference list type'
+
+  MetaobjectConnection:
+    type: object
+    description: 'Paginated list of metaobjects'
+    required:
+      - nodes
+      - pageInfo
+    properties:
+      edges:
+        type: array
+        items:
+          $ref: './types/storefront/metafields.yaml#/Metafields/MetaobjectEdge'
+      nodes:
+        type: array
+        items:
+          $ref: './types/storefront/metafields.yaml#/Metafields/Metaobject'
+      pageInfo:
+        $ref: './types/storefront/common.yaml#/Common/PageInfo'
+
+  MetaobjectEdge:
+    type: object
+    description: 'An edge in a metaobject connection'
+    required:
+      - node
+      - cursor
+    properties:
+      node:
+        $ref: './types/storefront/metafields.yaml#/Metafields/Metaobject'
+      cursor:
+        type: string
+
+  # Input types for queries
+  MetaobjectHandleInput:
+    type: object
+    description: 'Input for fetching a metaobject by handle'
+    required:
+      - handle
+      - type
+    properties:
+      handle:
+        type: string
+        description: 'The handle of the metaobject'
+      type:
+        type: string
+        description: 'The type of the metaobject'
+
+  HasMetafieldsIdentifier:
+    type: object
+    description: 'Input to identify a metafield by namespace and key'
+    required:
+      - key
+    properties:
+      namespace:
+        type: string
+        description: 'The namespace (omit for app-reserved namespace)'
+      key:
+        type: string
+        description: 'The metafield key'
+
+  GetMetaobjectsArgs:
+    type: object
+    description: 'Arguments for fetching metaobjects'
+    required:
+      - type
+    properties:
+      type:
+        type: string
+        description: 'The metaobject type to fetch'
+      first:
+        type: integer
+      after:
+        type: string
+      last:
+        type: integer
+      before:
+        type: string
+      reverse:
+        type: boolean
+      sortKey:
+        type: string
+        description: 'Sort key for the query'

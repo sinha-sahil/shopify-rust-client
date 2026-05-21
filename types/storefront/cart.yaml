@@ -1,0 +1,914 @@
+# Cart types for Shopify Storefront API
+# Non-top file - must use full paths for all references
+
+Cart:
+  Cart:
+    type: object
+    description: 'A shopping cart representing merchandise a buyer intends to purchase'
+    required:
+      - id
+      - checkoutUrl
+      - createdAt
+      - updatedAt
+      - lines
+      - cost
+      - buyerIdentity
+      - totalQuantity
+    properties:
+      id:
+        type: string
+        description: 'Globally unique identifier'
+      checkoutUrl:
+        type: string
+        description: 'URL to the checkout page'
+      createdAt:
+        type: string
+        format: date-time
+        description: 'The date and time when the cart was created'
+      updatedAt:
+        type: string
+        format: date-time
+        description: 'The date and time when the cart was updated'
+      note:
+        type: string
+        description: 'Note attached to the cart'
+      totalQuantity:
+        type: integer
+        description: 'Total quantity of items in the cart'
+      buyerIdentity:
+        $ref: './types/storefront/cart.yaml#/Cart/CartBuyerIdentity'
+      attributes:
+        type: array
+        items:
+          $ref: './types/storefront/common.yaml#/Common/Attribute'
+      discountCodes:
+        type: array
+        items:
+          $ref: './types/storefront/cart.yaml#/Cart/CartDiscountCode'
+      discountAllocations:
+        type: array
+        items:
+          $ref: './types/storefront/cart.yaml#/Cart/CartDiscountAllocation'
+      appliedGiftCards:
+        type: array
+        items:
+          $ref: './types/storefront/cart.yaml#/Cart/AppliedGiftCard'
+        description: 'Gift cards that have been applied to the cart'
+      cost:
+        $ref: './types/storefront/cart.yaml#/Cart/CartCost'
+      lines:
+        $ref: './types/storefront/cart.yaml#/Cart/BaseCartLineConnection'
+      delivery:
+        $ref: './types/storefront/cart.yaml#/Cart/CartDelivery'
+        description: 'The delivery properties of the cart'
+      deliveryGroups:
+        $ref: './types/storefront/cart.yaml#/Cart/CartDeliveryGroupConnection'
+        description: 'Delivery groups available for the cart'
+      metafield:
+        $ref: './types/storefront/metafields.yaml#/Metafields/Metafield'
+        description: 'A custom field associated with the cart'
+      metafields:
+        type: array
+        items:
+          $ref: './types/storefront/metafields.yaml#/Metafields/Metafield'
+        description: 'List of custom fields associated with the cart'
+      warnings:
+        type: array
+        items:
+          $ref: './types/storefront/cart.yaml#/Cart/CartWarning'
+        description: 'Warnings that occurred during cart operations'
+
+  CartBuyerIdentity:
+    type: object
+    description: 'Buyer identity information'
+    properties:
+      email:
+        type: string
+      phone:
+        type: string
+      countryCode:
+        type: string
+        description: 'Two-letter country code (ISO 3166-1 alpha-2)'
+      customer:
+        $ref: './types/storefront/customer.yaml#/Customer/CustomerSummary'
+      deliveryAddressPreferences:
+        type: array
+        items:
+          $ref: './types/storefront/cart.yaml#/Cart/DeliveryAddress'
+        description: 'Delivery address preferences'
+      walletPreferences:
+        type: array
+        items:
+          type: string
+        description: 'Wallet preferences for the buyer'
+
+  AppliedGiftCard:
+    type: object
+    description: 'A gift card that has been applied to the cart'
+    required:
+      - id
+      - lastCharacters
+      - amountUsed
+      - balance
+    properties:
+      id:
+        type: string
+        description: 'Globally unique identifier'
+      lastCharacters:
+        type: string
+        description: 'Last four characters of the gift card code'
+      amountUsed:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+        description: 'Amount used from this gift card'
+      balance:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+        description: 'Remaining balance on the gift card'
+      presentmentAmountUsed:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+        description: 'Amount used in presentment currency'
+
+  CartDelivery:
+    type: object
+    description: 'The delivery properties of the cart'
+    properties:
+      addresses:
+        type: array
+        items:
+          $ref: './types/storefront/cart.yaml#/Cart/CartSelectableAddress'
+        description: 'Selectable addresses for the buyer'
+
+  CartSelectableAddress:
+    type: object
+    description: 'A selectable delivery address for the cart'
+    properties:
+      address:
+        $ref: './types/storefront/customer.yaml#/Customer/MailingAddress'
+      selected:
+        type: boolean
+        description: 'Whether this address is selected'
+
+  CartDeliveryGroup:
+    type: object
+    description: 'Information about the options available for one or more line items to be delivered to a specific address'
+    required:
+      - id
+      - deliveryOptions
+      - cartLines
+    properties:
+      id:
+        type: string
+        description: 'Globally unique identifier'
+      deliveryAddress:
+        $ref: './types/storefront/customer.yaml#/Customer/MailingAddress'
+      deliveryOptions:
+        type: array
+        items:
+          $ref: './types/storefront/cart.yaml#/Cart/CartDeliveryOption'
+      selectedDeliveryOption:
+        $ref: './types/storefront/cart.yaml#/Cart/CartDeliveryOption'
+      cartLines:
+        $ref: './types/storefront/cart.yaml#/Cart/BaseCartLineConnection'
+      groupType:
+        $ref: './types/storefront/cart.yaml#/Cart/CartDeliveryGroupType'
+
+  CartDeliveryGroupConnection:
+    type: object
+    description: 'Paginated list of cart delivery groups'
+    required:
+      - edges
+    properties:
+      edges:
+        type: array
+        items:
+          $ref: './types/storefront/cart.yaml#/Cart/CartDeliveryGroupEdge'
+      pageInfo:
+        $ref: './types/storefront/common.yaml#/Common/PageInfo'
+
+  CartDeliveryGroupEdge:
+    type: object
+    description: 'An edge in a cart delivery group connection'
+    required:
+      - node
+    properties:
+      node:
+        $ref: './types/storefront/cart.yaml#/Cart/CartDeliveryGroup'
+      cursor:
+        type: string
+
+  CartDeliveryGroupType:
+    type: string
+    description: 'The type of cart delivery group'
+    enum:
+      - ONE_TIME_PURCHASE
+      - SUBSCRIPTION
+
+  CartDeliveryOption:
+    type: object
+    description: 'A delivery option for a cart delivery group'
+    required:
+      - handle
+      - title
+    properties:
+      handle:
+        type: string
+        description: 'Unique identifier for the delivery option'
+      title:
+        type: string
+        description: 'Title of the delivery option'
+      description:
+        type: string
+      estimatedCost:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+      code:
+        type: string
+        description: 'The code of the delivery option'
+      deliveryMethodType:
+        $ref: './types/storefront/cart.yaml#/Cart/DeliveryMethodType'
+
+  DeliveryMethodType:
+    type: string
+    description: 'The method of delivery'
+    enum:
+      - SHIPPING
+      - PICK_UP
+      - RETAIL
+      - LOCAL
+      - PICKUP_POINT
+      - NONE
+
+  DeliveryAddress:
+    type: object
+    description: 'A delivery address preference'
+    properties:
+      address:
+        $ref: './types/storefront/customer.yaml#/Customer/MailingAddress'
+      oneTimeUse:
+        type: boolean
+        description: 'Whether this is a one-time use address'
+
+  CartWarning:
+    type: object
+    description: 'A warning that occurred during a cart mutation'
+    required:
+      - code
+      - message
+      - target
+    properties:
+      code:
+        $ref: './types/storefront/cart.yaml#/Cart/CartWarningCode'
+      message:
+        type: string
+        description: 'The message text of the warning'
+      target:
+        type: string
+        description: 'The target of the warning'
+
+  CartWarningCode:
+    type: string
+    description: 'Warning codes for cart operations'
+    enum:
+      - MERCHANDISE_NOT_ENOUGH_STOCK
+      - MERCHANDISE_OUT_OF_STOCK
+      - PAYMENTS_GIFT_CARD_UNUSABLE
+      - CHECKOUT_THROTTLED
+      - DELIVERY_GROUP_PARTIALLY_AVAILABLE
+      - DELIVERY_GROUP_UNAVAILABLE
+
+  CartDiscountCode:
+    type: object
+    description: 'A discount code applied to the cart'
+    required:
+      - code
+      - applicable
+    properties:
+      code:
+        type: string
+      applicable:
+        type: boolean
+        description: 'Whether the discount code is applicable'
+
+  CartDiscountAllocation:
+    type: object
+    description: 'A discount allocation'
+    required:
+      - discountedAmount
+    properties:
+      discountedAmount:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+
+  CartCost:
+    type: object
+    description: 'Cost breakdown for the cart'
+    required:
+      - totalAmount
+      - subtotalAmount
+      - checkoutChargeAmount
+    properties:
+      totalAmount:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+        description: 'Total amount after discounts and taxes'
+      subtotalAmount:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+        description: 'Subtotal before taxes and cart-level discounts'
+      subtotalAmountEstimated:
+        type: boolean
+        description: 'Whether the subtotal amount is estimated'
+      totalAmountEstimated:
+        type: boolean
+        description: 'Whether the total amount is estimated'
+      totalTaxAmount:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+      totalTaxAmountEstimated:
+        type: boolean
+        description: 'Whether the total tax amount is estimated'
+      totalDutyAmount:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+      totalDutyAmountEstimated:
+        type: boolean
+        description: 'Whether the total duty amount is estimated'
+      checkoutChargeAmount:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+        description: 'Amount customer pays at checkout (excludes deferred payments)'
+
+  # BaseCartLine interface - common fields for all cart line types
+  BaseCartLine:
+    type: object
+    description: 'Base cart line interface with common fields'
+    required:
+      - id
+      - quantity
+      - merchandise
+      - cost
+    properties:
+      id:
+        type: string
+        description: 'Globally unique identifier'
+      quantity:
+        type: integer
+        description: 'The quantity of the merchandise'
+      merchandise:
+        $ref: './types/storefront/cart.yaml#/Cart/Merchandise'
+      attributes:
+        type: array
+        items:
+          $ref: './types/storefront/common.yaml#/Common/Attribute'
+      cost:
+        $ref: './types/storefront/cart.yaml#/Cart/CartLineCost'
+      discountAllocations:
+        type: array
+        items:
+          $ref: './types/storefront/cart.yaml#/Cart/CartDiscountAllocation'
+      sellingPlanAllocation:
+        $ref: './types/storefront/cart.yaml#/Cart/SellingPlanAllocation'
+
+  CartLine:
+    type: object
+    description: 'A line item in the cart (implements BaseCartLine)'
+    required:
+      - id
+      - quantity
+      - merchandise
+      - cost
+    properties:
+      id:
+        type: string
+        description: 'Globally unique identifier'
+      quantity:
+        type: integer
+        description: 'The quantity of the merchandise'
+      merchandise:
+        $ref: './types/storefront/cart.yaml#/Cart/Merchandise'
+      attributes:
+        type: array
+        items:
+          $ref: './types/storefront/common.yaml#/Common/Attribute'
+      cost:
+        $ref: './types/storefront/cart.yaml#/Cart/CartLineCost'
+      discountAllocations:
+        type: array
+        items:
+          $ref: './types/storefront/cart.yaml#/Cart/CartDiscountAllocation'
+      sellingPlanAllocation:
+        $ref: './types/storefront/cart.yaml#/Cart/SellingPlanAllocation'
+      instructions:
+        $ref: './types/storefront/cart.yaml#/Cart/CartLineInstructions'
+        description: 'Instructions for the line item'
+      parentRelationship:
+        $ref: './types/storefront/cart.yaml#/Cart/CartLineParentRelationship'
+        description: 'The parent of the line item'
+
+  CartLineInstructions:
+    type: object
+    description: 'Instructions for a cart line'
+    properties:
+      discounts:
+        $ref: './types/storefront/cart.yaml#/Cart/CartLineInstructionDiscounts'
+      message:
+        type: string
+
+  CartLineInstructionDiscounts:
+    type: string
+    description: 'Discount instruction for cart line'
+    enum:
+      - APPLY
+      - IGNORE
+
+  CartLineParentRelationship:
+    type: object
+    description: 'Parent relationship for a cart line'
+    properties:
+      id:
+        type: string
+        description: 'ID of the parent line'
+      type:
+        $ref: './types/storefront/cart.yaml#/Cart/CartLineParentType'
+
+  CartLineParentType:
+    type: string
+    description: 'Type of parent line relationship'
+    enum:
+      - BUNDLE
+
+  # Merchandise union type - can be ProductVariant or ComponentizableCartLine
+  Merchandise:
+    type: object
+    description: 'The merchandise in a cart line (ProductVariant)'
+    required:
+      - id
+      - title
+      - price
+    properties:
+      id:
+        type: string
+      title:
+        type: string
+      price:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+      product:
+        $ref: './types/storefront/products.yaml#/Products/ProductSummary'
+      image:
+        $ref: './types/storefront/common.yaml#/Common/Image'
+      selectedOptions:
+        type: array
+        items:
+          $ref: './types/storefront/common.yaml#/Common/SelectedOption'
+      sku:
+        type: string
+      availableForSale:
+        type: boolean
+      requiresShipping:
+        type: boolean
+      quantityAvailable:
+        type: integer
+
+  CartLineCost:
+    type: object
+    description: 'Cost breakdown for a cart line'
+    required:
+      - totalAmount
+      - amountPerQuantity
+    properties:
+      totalAmount:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+      amountPerQuantity:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+      compareAtAmountPerQuantity:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+      subtotalAmount:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+
+  BaseCartLineConnection:
+    type: object
+    description: 'Paginated list of cart lines (BaseCartLine)'
+    required:
+      - nodes
+    properties:
+      edges:
+        type: array
+        items:
+          $ref: './types/storefront/cart.yaml#/Cart/BaseCartLineEdge'
+      nodes:
+        type: array
+        items:
+          $ref: './types/storefront/cart.yaml#/Cart/CartLine'
+      pageInfo:
+        $ref: './types/storefront/common.yaml#/Common/PageInfo'
+
+  BaseCartLineEdge:
+    type: object
+    description: 'An edge in a base cart line connection'
+    required:
+      - node
+    properties:
+      node:
+        $ref: './types/storefront/cart.yaml#/Cart/CartLine'
+      cursor:
+        type: string
+
+  CartLineConnection:
+    type: object
+    description: 'Paginated list of cart lines'
+    required:
+      - nodes
+    properties:
+      edges:
+        type: array
+        items:
+          $ref: './types/storefront/cart.yaml#/Cart/CartLineEdge'
+      nodes:
+        type: array
+        items:
+          $ref: './types/storefront/cart.yaml#/Cart/CartLine'
+      pageInfo:
+        $ref: './types/storefront/common.yaml#/Common/PageInfo'
+
+  CartLineEdge:
+    type: object
+    description: 'An edge in a cart line connection'
+    required:
+      - node
+    properties:
+      node:
+        $ref: './types/storefront/cart.yaml#/Cart/CartLine'
+      cursor:
+        type: string
+
+  SellingPlanAllocation:
+    type: object
+    description: 'Association between a variant and a selling plan with pricing details'
+    required:
+      - sellingPlan
+      - priceAdjustments
+      - checkoutChargeAmount
+      - remainingBalanceChargeAmount
+    properties:
+      sellingPlan:
+        $ref: './types/storefront/cart.yaml#/Cart/SellingPlan'
+      priceAdjustments:
+        type: array
+        items:
+          $ref: './types/storefront/cart.yaml#/Cart/SellingPlanAllocationPriceAdjustment'
+        description: 'Price adjustments for this allocation'
+      checkoutChargeAmount:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+        description: 'The checkout charge amount due for the purchase'
+      remainingBalanceChargeAmount:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+        description: 'The remaining balance charge amount'
+
+  SellingPlanAllocationPriceAdjustment:
+    type: object
+    description: 'Price adjustment for a selling plan allocation'
+    required:
+      - price
+      - compareAtPrice
+      - perDeliveryPrice
+    properties:
+      price:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+        description: 'The effective price'
+      compareAtPrice:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+        description: 'The compare at price'
+      perDeliveryPrice:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+        description: 'The price per delivery'
+      unitPrice:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+        description: 'The unit price'
+
+  SellingPlan:
+    type: object
+    description: 'A selling plan representing how products can be sold and purchased'
+    required:
+      - id
+      - name
+      - recurringDeliveries
+      - checkoutCharge
+      - priceAdjustments
+      - options
+    properties:
+      id:
+        type: string
+        description: 'Globally unique identifier'
+      name:
+        type: string
+        description: 'Name of the selling plan'
+      description:
+        type: string
+        description: 'Description of the selling plan'
+      recurringDeliveries:
+        type: boolean
+        description: 'Whether purchasing this plan results in multiple deliveries'
+      checkoutCharge:
+        $ref: './types/storefront/cart.yaml#/Cart/SellingPlanCheckoutCharge'
+        description: 'The initial payment due for the purchase'
+      priceAdjustments:
+        type: array
+        items:
+          $ref: './types/storefront/cart.yaml#/Cart/SellingPlanPriceAdjustment'
+        description: 'Price adjustments when a variant is purchased with this plan'
+      options:
+        type: array
+        items:
+          $ref: './types/storefront/cart.yaml#/Cart/SellingPlanOption'
+        description: 'Options available for this selling plan'
+      billingPolicy:
+        $ref: './types/storefront/cart.yaml#/Cart/SellingPlanBillingPolicy'
+      deliveryPolicy:
+        $ref: './types/storefront/cart.yaml#/Cart/SellingPlanDeliveryPolicy'
+      metafield:
+        $ref: './types/storefront/metafields.yaml#/Metafields/Metafield'
+      metafields:
+        type: array
+        items:
+          $ref: './types/storefront/metafields.yaml#/Metafields/Metafield'
+
+  SellingPlanOption:
+    type: object
+    description: 'An option provided by a selling plan'
+    properties:
+      name:
+        type: string
+        description: 'The name of the option (e.g., "Delivery every")'
+      value:
+        type: string
+        description: 'The value of the option (e.g., "Month")'
+
+  SellingPlanCheckoutCharge:
+    type: object
+    description: 'The initial payment due for a selling plan'
+    required:
+      - type
+      - value
+    properties:
+      type:
+        $ref: './types/storefront/cart.yaml#/Cart/SellingPlanCheckoutChargeType'
+      value:
+        $ref: './types/storefront/cart.yaml#/Cart/SellingPlanCheckoutChargeValue'
+
+  SellingPlanCheckoutChargeType:
+    type: string
+    description: 'The type of checkout charge'
+    enum:
+      - PERCENTAGE
+      - PRICE
+
+  SellingPlanCheckoutChargeValue:
+    type: object
+    description: 'The value of the checkout charge (percentage or money)'
+    properties:
+      percentage:
+        type: number
+      amount:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+
+  SellingPlanBillingPolicy:
+    type: object
+    description: 'The billing policy for a selling plan'
+    properties:
+      recurringPolicy:
+        $ref: './types/storefront/cart.yaml#/Cart/SellingPlanRecurringBillingPolicy'
+
+  SellingPlanRecurringBillingPolicy:
+    type: object
+    description: 'Recurring billing policy details'
+    properties:
+      interval:
+        $ref: './types/storefront/cart.yaml#/Cart/SellingPlanInterval'
+      intervalCount:
+        type: integer
+
+  SellingPlanDeliveryPolicy:
+    type: object
+    description: 'The delivery policy for a selling plan'
+    properties:
+      recurringPolicy:
+        $ref: './types/storefront/cart.yaml#/Cart/SellingPlanRecurringDeliveryPolicy'
+
+  SellingPlanRecurringDeliveryPolicy:
+    type: object
+    description: 'Recurring delivery policy details'
+    properties:
+      interval:
+        $ref: './types/storefront/cart.yaml#/Cart/SellingPlanInterval'
+      intervalCount:
+        type: integer
+
+  SellingPlanInterval:
+    type: string
+    description: 'Time interval for selling plan'
+    enum:
+      - DAY
+      - WEEK
+      - MONTH
+      - YEAR
+
+  SellingPlanPriceAdjustment:
+    type: object
+    description: 'Price adjustment for a selling plan'
+    required:
+      - price
+      - compareAtPrice
+    properties:
+      price:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+      compareAtPrice:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+      perDeliveryPrice:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+
+  CartUserErrorCode:
+    type: string
+    description: 'Error codes for cart operations'
+    enum:
+      - INVALID
+      - LESS_THAN
+      - GREATER_THAN
+      - INVALID_MERCHANDISE_LINE
+      - MISSING_DISCOUNT_CODE
+      - MISSING_NOTE
+      - INVALID_DELIVERY_GROUP
+      - INVALID_DELIVERY_OPTION
+      - INVALID_METAFIELDS
+      - GIFT_CARD_UNUSABLE
+      - PRODUCT_NOT_AVAILABLE
+      - INVALID_INPUT
+      - VALIDATION_ERROR
+
+  CartUserError:
+    type: object
+    description: 'An error that occurred during a cart operation'
+    required:
+      - message
+      - code
+    properties:
+      field:
+        type: array
+        items:
+          type: string
+      message:
+        type: string
+      code:
+        $ref: './types/storefront/cart.yaml#/Cart/CartUserErrorCode'
+
+  # Input types for mutations
+  CartLineInput:
+    type: object
+    description: 'Input for adding a line to the cart'
+    required:
+      - merchandiseId
+      - quantity
+    properties:
+      merchandiseId:
+        type: string
+        description: 'The ID of the merchandise (product variant)'
+      quantity:
+        type: number
+        description: 'The quantity to add'
+      attributes:
+        type: array
+        items:
+          $ref: './types/storefront/common.yaml#/Common/Attribute'
+      sellingPlanId:
+        type: string
+        description: 'The ID of the selling plan'
+
+  CartLineUpdateInput:
+    type: object
+    description: 'Input for updating a cart line'
+    required:
+      - id
+    properties:
+      id:
+        type: string
+        description: 'The ID of the cart line'
+      quantity:
+        type: number
+        description: 'The new quantity'
+      merchandiseId:
+        type: string
+        description: 'The new merchandise ID'
+      attributes:
+        type: array
+        items:
+          $ref: './types/storefront/common.yaml#/Common/Attribute'
+      sellingPlanId:
+        type: string
+        description: 'The ID of the selling plan'
+
+  CartBuyerIdentityInput:
+    type: object
+    description: 'Input for updating buyer identity'
+    properties:
+      email:
+        type: string
+      phone:
+        type: string
+      countryCode:
+        type: string
+        description: 'Two-letter country code'
+      customerAccessToken:
+        type: string
+        description: 'Customer access token for authenticated customers'
+
+  CartInput:
+    type: object
+    description: 'Input for creating a cart'
+    properties:
+      lines:
+        type: array
+        items:
+          $ref: './types/storefront/cart.yaml#/Cart/CartLineInput'
+        description: 'Merchandise lines to add to the cart'
+      attributes:
+        type: array
+        items:
+          $ref: './types/storefront/common.yaml#/Common/AttributeInput'
+        description: 'Additional information about the cart'
+      note:
+        type: string
+        description: 'Note associated with the cart'
+      buyerIdentity:
+        $ref: './types/storefront/cart.yaml#/Cart/CartBuyerIdentityInput'
+        description: 'Customer associated with the cart'
+      discountCodes:
+        type: array
+        items:
+          type: string
+        description: 'Discount codes to apply to the cart'
+      giftCardCodes:
+        type: array
+        items:
+          type: string
+        description: 'Gift card codes to apply to the cart'
+      delivery:
+        $ref: './types/storefront/cart.yaml#/Cart/CartDeliveryInput'
+        description: 'Delivery-related fields for the cart'
+      metafields:
+        type: array
+        items:
+          $ref: './types/storefront/cart.yaml#/Cart/CartInputMetafieldInput'
+        description: 'Metafields to associate with the cart'
+
+  CartDeliveryInput:
+    type: object
+    description: 'Input for cart delivery options'
+    properties:
+      deliveryGroups:
+        type: array
+        items:
+          $ref: './types/storefront/cart.yaml#/Cart/CartDeliveryGroupInput'
+
+  CartDeliveryGroupInput:
+    type: object
+    description: 'Input for a cart delivery group'
+    required:
+      - selectedDeliveryOption
+    properties:
+      id:
+        type: string
+        description: 'Delivery group ID'
+      selectedDeliveryOption:
+        $ref: './types/storefront/cart.yaml#/Cart/CartSelectedDeliveryOptionInput'
+
+  CartSelectedDeliveryOptionInput:
+    type: object
+    description: 'Input for selected delivery option'
+    required:
+      - handle
+    properties:
+      handle:
+        type: string
+        description: 'Handle of the delivery option'
+
+  CartInputMetafieldInput:
+    type: object
+    description: 'Input for a cart metafield'
+    required:
+      - key
+      - value
+      - type
+    properties:
+      key:
+        type: string
+        description: 'The key name of the metafield'
+      value:
+        type: string
+        description: 'The value of the metafield'
+      type:
+        type: string
+        description: 'The type of the metafield value'
+
+  CartMutationResult:
+    type: object
+    description: 'Result of a cart mutation'
+    required:
+      - userErrors
+    properties:
+      cart:
+        $ref: './types/storefront/cart.yaml#/Cart/Cart'
+      userErrors:
+        type: array
+        items:
+          $ref: './types/storefront/cart.yaml#/Cart/CartUserError'

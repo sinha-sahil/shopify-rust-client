@@ -1,0 +1,97 @@
+# Localization types for Shopify Storefront API
+# Non-top file - must use full paths for all references
+
+Localization:
+  Localization:
+    type: object
+    description: 'Localization information for the current context'
+    required:
+      - availableCountries
+      - availableLanguages
+      - country
+      - language
+    properties:
+      availableCountries:
+        type: array
+        items:
+          $ref: './types/storefront/localization.yaml#/Localization/Country'
+      availableLanguages:
+        type: array
+        items:
+          $ref: './types/storefront/localization.yaml#/Localization/Language'
+      country:
+        $ref: './types/storefront/localization.yaml#/Localization/Country'
+      language:
+        $ref: './types/storefront/localization.yaml#/Localization/Language'
+      market:
+        $ref: './types/storefront/localization.yaml#/Localization/Market'
+
+  Country:
+    type: object
+    description: 'A country for localization'
+    required:
+      - isoCode
+      - name
+      - currency
+    properties:
+      isoCode:
+        type: string
+        description: 'Two-letter country code (ISO 3166-1 alpha-2)'
+      name:
+        type: string
+        description: 'Country name'
+      currency:
+        $ref: './types/storefront/localization.yaml#/Localization/Currency'
+      availableLanguages:
+        type: array
+        items:
+          $ref: './types/storefront/localization.yaml#/Localization/Language'
+      market:
+        $ref: './types/storefront/localization.yaml#/Localization/Market'
+
+  Language:
+    type: object
+    description: 'A language for localization'
+    required:
+      - isoCode
+      - name
+    properties:
+      isoCode:
+        type: string
+        description: 'Language code (e.g., EN, FR)'
+      name:
+        type: string
+        description: 'Language name in English'
+      endonymName:
+        type: string
+        description: 'Language name in its own language'
+
+  Currency:
+    type: object
+    description: 'A currency'
+    required:
+      - isoCode
+      - name
+      - symbol
+    properties:
+      isoCode:
+        type: string
+        description: 'Three-letter currency code (ISO 4217)'
+      name:
+        type: string
+        description: 'Currency name'
+      symbol:
+        type: string
+        description: 'Currency symbol'
+
+  Market:
+    type: object
+    description: 'A Shopify market'
+    required:
+      - id
+      - handle
+    properties:
+      id:
+        type: string
+      handle:
+        type: string

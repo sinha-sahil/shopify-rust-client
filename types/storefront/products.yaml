@@ -1,0 +1,1008 @@
+# Product types for Shopify Storefront API
+# Non-top file - must use full paths for all references
+
+Products:
+  Product:
+    type: object
+    description: 'A product in the store with variants, options, and media'
+    required:
+      - id
+      - title
+      - handle
+      - availableForSale
+      - priceRange
+      - compareAtPriceRange
+      - seo
+      - tags
+      - vendor
+      - productType
+    properties:
+      id:
+        type: string
+        description: 'Globally unique identifier'
+      title:
+        type: string
+        description: 'Product title'
+      handle:
+        type: string
+        description: 'URL-friendly identifier'
+      description:
+        type: string
+        description: 'Product description (plain text)'
+      descriptionHtml:
+        type: string
+        description: 'Product description (HTML)'
+      vendor:
+        type: string
+        description: 'Product vendor'
+      productType:
+        type: string
+        description: 'Product type'
+      createdAt:
+        type: string
+        format: date-time
+        description: 'When the product was created'
+      updatedAt:
+        type: string
+        format: date-time
+        description: 'When the product was last updated'
+      publishedAt:
+        type: string
+        format: date-time
+        description: 'When the product was published'
+      availableForSale:
+        type: boolean
+        description: 'Whether at least one variant is available for sale'
+      totalInventory:
+        type: integer
+        description: 'Total inventory across all variants'
+      featuredImage:
+        $ref: './types/storefront/common.yaml#/Common/Image'
+        description: 'The featured image (equivalent to images first: 1)'
+      priceRange:
+        $ref: './types/storefront/products.yaml#/Products/ProductPriceRange'
+        description: 'Min and max prices across variants'
+      compareAtPriceRange:
+        $ref: './types/storefront/products.yaml#/Products/ProductPriceRange'
+        description: 'Compare at price range for sale pricing'
+      seo:
+        $ref: './types/storefront/common.yaml#/Common/SEO'
+      tags:
+        type: array
+        items:
+          type: string
+        description: 'Searchable keywords associated with the product'
+      options:
+        type: array
+        items:
+          $ref: './types/storefront/products.yaml#/Products/ProductOption'
+        description: 'Product options like Size, Color'
+      images:
+        $ref: './types/storefront/products.yaml#/Products/ImageConnection'
+      variants:
+        $ref: './types/storefront/products.yaml#/Products/ProductVariantConnection'
+      metafield:
+        $ref: './types/storefront/metafields.yaml#/Metafields/Metafield'
+        description: 'A custom field associated with the product'
+      metafields:
+        type: array
+        items:
+          $ref: './types/storefront/metafields.yaml#/Metafields/Metafield'
+        description: 'List of custom fields'
+      # New fields from the API
+      isGiftCard:
+        type: boolean
+        description: 'Whether the product is a gift card'
+      onlineStoreUrl:
+        type: string
+        description: 'URL on the online store (null if not published)'
+      requiresSellingPlan:
+        type: boolean
+        description: 'Whether the product can only be purchased with a selling plan'
+      category:
+        $ref: './types/storefront/products.yaml#/Products/TaxonomyCategory'
+        description: 'Product category from Shopify Standard Product Taxonomy'
+      media:
+        $ref: './types/storefront/products.yaml#/Products/MediaConnection'
+        description: 'Media associated with the product (images, videos, 3D models)'
+      sellingPlanGroups:
+        $ref: './types/storefront/products.yaml#/Products/SellingPlanGroupConnection'
+        description: 'Selling plan groups for subscriptions'
+      adjacentVariants:
+        type: array
+        items:
+          $ref: './types/storefront/products.yaml#/Products/ProductVariant'
+        description: 'Variants differing by one option from selected options'
+      selectedOrFirstAvailableVariant:
+        $ref: './types/storefront/products.yaml#/Products/ProductVariant'
+        description: 'Find active variant based on selected options or first available'
+      variantBySelectedOptions:
+        $ref: './types/storefront/products.yaml#/Products/ProductVariant'
+        description: 'Find variant by selected options'
+      variantsCount:
+        $ref: './types/storefront/common.yaml#/Common/Count'
+        description: 'Number of variants'
+      encodedVariantExistence:
+        type: string
+        description: 'Encoded string of all option value combinations with variants'
+      encodedVariantAvailability:
+        type: string
+        description: 'Encoded string of available variant combinations'
+      trackingParameters:
+        type: string
+        description: 'URL parameters for analytics tracking'
+
+  ProductPriceRange:
+    type: object
+    description: 'The price range of the product'
+    required:
+      - minVariantPrice
+      - maxVariantPrice
+    properties:
+      minVariantPrice:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+        description: 'The lowest variant price'
+      maxVariantPrice:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+        description: 'The highest variant price'
+
+  TaxonomyCategory:
+    type: object
+    description: 'Product category from Shopify Standard Product Taxonomy'
+    required:
+      - id
+      - name
+    properties:
+      id:
+        type: string
+        description: 'Category ID'
+      name:
+        type: string
+        description: 'Category name'
+      fullName:
+        type: string
+        description: 'Full category path'
+      ancestors:
+        type: array
+        items:
+          $ref: './types/storefront/products.yaml#/Products/TaxonomyCategory'
+        description: 'Parent categories'
+
+  ProductOption:
+    type: object
+    description: 'A product option (e.g., Size, Color)'
+    required:
+      - id
+      - name
+      - optionValues
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+        description: 'Option name (limit 255 characters)'
+      optionValues:
+        type: array
+        items:
+          $ref: './types/storefront/products.yaml#/Products/ProductOptionValue'
+        description: 'Option values with swatch support'
+
+  ProductOptionValue:
+    type: object
+    description: 'A product option value (e.g., "Red", "Blue")'
+    required:
+      - id
+      - name
+    properties:
+      id:
+        type: string
+        description: 'Globally unique identifier'
+      name:
+        type: string
+        description: 'The name of the option value'
+      swatch:
+        $ref: './types/storefront/products.yaml#/Products/ProductOptionValueSwatch'
+        description: 'Visual swatch for the option value'
+      firstSelectableVariant:
+        $ref: './types/storefront/products.yaml#/Products/ProductVariant'
+        description: 'The first selectable variant with this option value'
+
+  ProductOptionValueSwatch:
+    type: object
+    description: 'Visual swatch for a product option value'
+    properties:
+      color:
+        type: string
+        description: 'Color hex code'
+      image:
+        $ref: './types/storefront/common.yaml#/Common/Image'
+        description: 'Swatch image'
+
+  ProductVariant:
+    type: object
+    description: 'A product variant representing a specific version of a product'
+    required:
+      - id
+      - title
+      - availableForSale
+      - price
+      - selectedOptions
+    properties:
+      id:
+        type: string
+        description: 'Globally unique identifier'
+      title:
+        type: string
+        description: 'Variant title'
+      sku:
+        type: string
+        description: 'Stock keeping unit'
+      barcode:
+        type: string
+        description: 'Barcode (ISBN, UPC, or GTIN)'
+      availableForSale:
+        type: boolean
+        description: 'Whether the variant is available for sale'
+      quantityAvailable:
+        type: integer
+        description: 'Total sellable quantity for online sales channels'
+      currentlyNotInStock:
+        type: boolean
+        description: 'Whether out of stock but available for backorder'
+      requiresShipping:
+        type: boolean
+        description: 'Whether shipping is required'
+      requiresComponents:
+        type: boolean
+        description: 'Whether variant requires components (bundle parent)'
+      taxable:
+        type: boolean
+        description: 'Whether tax is charged when sold'
+      weight:
+        type: number
+        description: 'Weight in the specified unit'
+      weightUnit:
+        $ref: './types/storefront/products.yaml#/Products/WeightUnit'
+      price:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+        description: 'The variant price'
+      compareAtPrice:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+        description: 'Compare at price (for sale pricing)'
+      image:
+        $ref: './types/storefront/common.yaml#/Common/Image'
+        description: 'Image associated with the variant'
+      selectedOptions:
+        type: array
+        items:
+          $ref: './types/storefront/common.yaml#/Common/SelectedOption'
+        description: 'List of selected options for this variant'
+      product:
+        $ref: './types/storefront/products.yaml#/Products/ProductSummary'
+        description: 'Summary of the product this variant belongs to'
+      unitPrice:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+        description: 'Unit price based on measurement'
+      unitPriceMeasurement:
+        $ref: './types/storefront/products.yaml#/Products/UnitPriceMeasurement'
+      # New fields from the API
+      metafield:
+        $ref: './types/storefront/metafields.yaml#/Metafields/Metafield'
+        description: 'A custom field associated with the variant'
+      metafields:
+        type: array
+        items:
+          $ref: './types/storefront/metafields.yaml#/Metafields/Metafield'
+        description: 'List of custom fields'
+      sellingPlanAllocations:
+        $ref: './types/storefront/products.yaml#/Products/SellingPlanAllocationConnection'
+        description: 'Selling plan allocations for subscriptions'
+      storeAvailability:
+        $ref: './types/storefront/products.yaml#/Products/StoreAvailabilityConnection'
+        description: 'In-store pickup availability by location'
+      quantityRule:
+        $ref: './types/storefront/products.yaml#/Products/QuantityRule'
+        description: 'Quantity rules for the variant'
+      quantityPriceBreaks:
+        $ref: './types/storefront/products.yaml#/Products/QuantityPriceBreakConnection'
+        description: 'B2B quantity price breaks'
+      components:
+        $ref: './types/storefront/products.yaml#/Products/ProductVariantComponentConnection'
+        description: 'Bundle components (for fixed bundles)'
+      groupedBy:
+        $ref: './types/storefront/products.yaml#/Products/ProductVariantConnection'
+        description: 'Bundles that include this variant'
+      shopPayInstallmentsPricing:
+        $ref: './types/storefront/products.yaml#/Products/ShopPayInstallmentsProductVariantPricing'
+        description: 'Shop Pay Installments pricing'
+
+  WeightUnit:
+    type: string
+    description: 'Unit of measurement for weight'
+    enum:
+      - GRAMS
+      - KILOGRAMS
+      - OUNCES
+      - POUNDS
+
+  ProductSummary:
+    type: object
+    description: 'Minimal product info for nested references'
+    required:
+      - id
+      - title
+      - handle
+    properties:
+      id:
+        type: string
+      title:
+        type: string
+      handle:
+        type: string
+
+  UnitPriceMeasurement:
+    type: object
+    description: 'Unit price measurement'
+    properties:
+      measuredType:
+        $ref: './types/storefront/products.yaml#/Products/UnitPriceMeasurementMeasuredType'
+      quantityUnit:
+        $ref: './types/storefront/products.yaml#/Products/UnitPriceMeasurementMeasuredUnit'
+      quantityValue:
+        type: number
+      referenceUnit:
+        $ref: './types/storefront/products.yaml#/Products/UnitPriceMeasurementMeasuredUnit'
+      referenceValue:
+        type: integer
+
+  UnitPriceMeasurementMeasuredType:
+    type: string
+    description: 'Type of unit price measurement'
+    enum:
+      - VOLUME
+      - WEIGHT
+      - LENGTH
+      - AREA
+
+  UnitPriceMeasurementMeasuredUnit:
+    type: string
+    description: 'Unit of measurement'
+    enum:
+      - ML
+      - CL
+      - L
+      - M3
+      - MG
+      - G
+      - KG
+      - MM
+      - CM
+      - M
+      - M2
+
+  QuantityRule:
+    type: object
+    description: 'Quantity rules for a product variant'
+    required:
+      - minimum
+      - maximum
+      - increment
+    properties:
+      minimum:
+        type: integer
+        description: 'Minimum quantity that must be purchased'
+      maximum:
+        type: integer
+        description: 'Maximum quantity that can be purchased (null for unlimited)'
+      increment:
+        type: integer
+        description: 'Quantity must be a multiple of this value'
+
+  QuantityPriceBreak:
+    type: object
+    description: 'A quantity-based price break for B2B'
+    required:
+      - minimumQuantity
+      - price
+    properties:
+      minimumQuantity:
+        type: integer
+        description: 'Minimum quantity to qualify for this price'
+      price:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+        description: 'Price at this quantity level'
+
+  QuantityPriceBreakConnection:
+    type: object
+    description: 'Paginated list of quantity price breaks'
+    required:
+      - edges
+    properties:
+      edges:
+        type: array
+        items:
+          $ref: './types/storefront/products.yaml#/Products/QuantityPriceBreakEdge'
+      nodes:
+        type: array
+        items:
+          $ref: './types/storefront/products.yaml#/Products/QuantityPriceBreak'
+      pageInfo:
+        $ref: './types/storefront/common.yaml#/Common/PageInfo'
+
+  QuantityPriceBreakEdge:
+    type: object
+    description: 'An edge in a quantity price break connection'
+    required:
+      - node
+    properties:
+      node:
+        $ref: './types/storefront/products.yaml#/Products/QuantityPriceBreak'
+      cursor:
+        type: string
+
+  StoreAvailability:
+    type: object
+    description: 'In-store pickup availability for a variant at a location'
+    required:
+      - available
+      - location
+    properties:
+      available:
+        type: boolean
+        description: 'Whether the variant is available for pickup'
+      pickUpTime:
+        type: string
+        description: 'Estimated pickup time (e.g., "Usually ready in 24 hours")'
+      quantityAvailable:
+        type: integer
+        description: 'Quantity available at this location'
+      location:
+        $ref: './types/storefront/products.yaml#/Products/Location'
+
+  StoreAvailabilityConnection:
+    type: object
+    description: 'Paginated list of store availability'
+    required:
+      - edges
+    properties:
+      edges:
+        type: array
+        items:
+          $ref: './types/storefront/products.yaml#/Products/StoreAvailabilityEdge'
+      nodes:
+        type: array
+        items:
+          $ref: './types/storefront/products.yaml#/Products/StoreAvailability'
+      pageInfo:
+        $ref: './types/storefront/common.yaml#/Common/PageInfo'
+
+  StoreAvailabilityEdge:
+    type: object
+    description: 'An edge in a store availability connection'
+    required:
+      - node
+    properties:
+      node:
+        $ref: './types/storefront/products.yaml#/Products/StoreAvailability'
+      cursor:
+        type: string
+
+  Location:
+    type: object
+    description: 'A store location for pickup'
+    required:
+      - id
+      - name
+    properties:
+      id:
+        type: string
+        description: 'Globally unique identifier'
+      name:
+        type: string
+        description: 'Location name'
+      address:
+        $ref: './types/storefront/customer.yaml#/Customer/MailingAddress'
+
+  ProductVariantComponent:
+    type: object
+    description: 'A component of a bundle variant'
+    required:
+      - productVariant
+      - quantity
+    properties:
+      productVariant:
+        $ref: './types/storefront/products.yaml#/Products/ProductVariant'
+      quantity:
+        type: integer
+
+  ProductVariantComponentConnection:
+    type: object
+    description: 'Paginated list of bundle components'
+    required:
+      - edges
+    properties:
+      edges:
+        type: array
+        items:
+          $ref: './types/storefront/products.yaml#/Products/ProductVariantComponentEdge'
+      nodes:
+        type: array
+        items:
+          $ref: './types/storefront/products.yaml#/Products/ProductVariantComponent'
+      pageInfo:
+        $ref: './types/storefront/common.yaml#/Common/PageInfo'
+
+  ProductVariantComponentEdge:
+    type: object
+    description: 'An edge in a component connection'
+    required:
+      - node
+    properties:
+      node:
+        $ref: './types/storefront/products.yaml#/Products/ProductVariantComponent'
+      cursor:
+        type: string
+
+  ShopPayInstallmentsProductVariantPricing:
+    type: object
+    description: 'Shop Pay Installments pricing for a variant'
+    properties:
+      eligible:
+        type: boolean
+        description: 'Whether eligible for Shop Pay Installments'
+      price:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+
+  ProductVariantConnection:
+    type: object
+    description: 'Paginated list of product variants'
+    required:
+      - nodes
+      - pageInfo
+    properties:
+      edges:
+        type: array
+        items:
+          $ref: './types/storefront/products.yaml#/Products/ProductVariantEdge'
+      nodes:
+        type: array
+        items:
+          $ref: './types/storefront/products.yaml#/Products/ProductVariant'
+      pageInfo:
+        $ref: './types/storefront/common.yaml#/Common/PageInfo'
+
+  ProductVariantEdge:
+    type: object
+    description: 'An edge in a product variant connection'
+    required:
+      - node
+      - cursor
+    properties:
+      node:
+        $ref: './types/storefront/products.yaml#/Products/ProductVariant'
+      cursor:
+        type: string
+
+  ProductConnection:
+    type: object
+    description: 'Paginated list of products'
+    required:
+      - nodes
+      - pageInfo
+    properties:
+      edges:
+        type: array
+        items:
+          $ref: './types/storefront/products.yaml#/Products/ProductEdge'
+      nodes:
+        type: array
+        items:
+          $ref: './types/storefront/products.yaml#/Products/Product'
+      filters:
+        type: array
+        items:
+          $ref: './types/storefront/collections.yaml#/Collections/Filter'
+        description: 'Available filters for products'
+      pageInfo:
+        $ref: './types/storefront/common.yaml#/Common/PageInfo'
+
+  ProductEdge:
+    type: object
+    description: 'An edge in a product connection'
+    required:
+      - node
+      - cursor
+    properties:
+      node:
+        $ref: './types/storefront/products.yaml#/Products/Product'
+      cursor:
+        type: string
+
+  ImageConnection:
+    type: object
+    description: 'Paginated list of images'
+    required:
+      - nodes
+      - pageInfo
+    properties:
+      edges:
+        type: array
+        items:
+          $ref: './types/storefront/products.yaml#/Products/ImageEdge'
+      nodes:
+        type: array
+        items:
+          $ref: './types/storefront/common.yaml#/Common/Image'
+      pageInfo:
+        $ref: './types/storefront/common.yaml#/Common/PageInfo'
+
+  ImageEdge:
+    type: object
+    description: 'An edge in an image connection'
+    required:
+      - node
+      - cursor
+    properties:
+      node:
+        $ref: './types/storefront/common.yaml#/Common/Image'
+      cursor:
+        type: string
+
+  # Media types for products
+  Media:
+    type: object
+    description: 'Media associated with a product (base type)'
+    required:
+      - id
+      - mediaContentType
+    properties:
+      id:
+        type: string
+        description: 'Globally unique identifier'
+      mediaContentType:
+        $ref: './types/storefront/products.yaml#/Products/MediaContentType'
+      alt:
+        type: string
+        description: 'Alt text for accessibility'
+      previewImage:
+        $ref: './types/storefront/common.yaml#/Common/Image'
+        description: 'Preview image for the media'
+
+  MediaContentType:
+    type: string
+    description: 'The type of media content'
+    enum:
+      - IMAGE
+      - VIDEO
+      - EXTERNAL_VIDEO
+      - MODEL_3D
+
+  MediaImage:
+    type: object
+    description: 'An image media type'
+    required:
+      - id
+      - mediaContentType
+    properties:
+      id:
+        type: string
+      mediaContentType:
+        $ref: './types/storefront/products.yaml#/Products/MediaContentType'
+      alt:
+        type: string
+      previewImage:
+        $ref: './types/storefront/common.yaml#/Common/Image'
+      image:
+        $ref: './types/storefront/common.yaml#/Common/Image'
+
+  Video:
+    type: object
+    description: 'A video media type'
+    required:
+      - id
+      - mediaContentType
+      - sources
+    properties:
+      id:
+        type: string
+      mediaContentType:
+        $ref: './types/storefront/products.yaml#/Products/MediaContentType'
+      alt:
+        type: string
+      previewImage:
+        $ref: './types/storefront/common.yaml#/Common/Image'
+      sources:
+        type: array
+        items:
+          $ref: './types/storefront/products.yaml#/Products/VideoSource'
+
+  VideoSource:
+    type: object
+    description: 'A video source'
+    required:
+      - url
+      - mimeType
+    properties:
+      url:
+        type: string
+      mimeType:
+        type: string
+      format:
+        type: string
+      width:
+        type: integer
+      height:
+        type: integer
+
+  ExternalVideo:
+    type: object
+    description: 'An external video (e.g., YouTube, Vimeo)'
+    required:
+      - id
+      - mediaContentType
+      - embedUrl
+    properties:
+      id:
+        type: string
+      mediaContentType:
+        $ref: './types/storefront/products.yaml#/Products/MediaContentType'
+      alt:
+        type: string
+      previewImage:
+        $ref: './types/storefront/common.yaml#/Common/Image'
+      embedUrl:
+        type: string
+        description: 'URL to embed the video'
+      host:
+        $ref: './types/storefront/products.yaml#/Products/MediaHost'
+      originUrl:
+        type: string
+        description: 'Original URL of the video'
+
+  MediaHost:
+    type: string
+    description: 'Host of external video'
+    enum:
+      - YOUTUBE
+      - VIMEO
+
+  Model3d:
+    type: object
+    description: 'A 3D model media type'
+    required:
+      - id
+      - mediaContentType
+      - sources
+    properties:
+      id:
+        type: string
+      mediaContentType:
+        $ref: './types/storefront/products.yaml#/Products/MediaContentType'
+      alt:
+        type: string
+      previewImage:
+        $ref: './types/storefront/common.yaml#/Common/Image'
+      sources:
+        type: array
+        items:
+          $ref: './types/storefront/products.yaml#/Products/Model3dSource'
+
+  Model3dSource:
+    type: object
+    description: 'A 3D model source'
+    required:
+      - url
+      - mimeType
+    properties:
+      url:
+        type: string
+      mimeType:
+        type: string
+      format:
+        type: string
+      filesize:
+        type: integer
+
+  MediaConnection:
+    type: object
+    description: 'Paginated list of media'
+    required:
+      - edges
+    properties:
+      edges:
+        type: array
+        items:
+          $ref: './types/storefront/products.yaml#/Products/MediaEdge'
+      nodes:
+        type: array
+        items:
+          $ref: './types/storefront/products.yaml#/Products/Media'
+      pageInfo:
+        $ref: './types/storefront/common.yaml#/Common/PageInfo'
+
+  MediaEdge:
+    type: object
+    description: 'An edge in a media connection'
+    required:
+      - node
+    properties:
+      node:
+        $ref: './types/storefront/products.yaml#/Products/Media'
+      cursor:
+        type: string
+
+  # Selling Plan Group types
+  SellingPlanGroup:
+    type: object
+    description: 'A group of selling plans (e.g., Subscribe and save)'
+    required:
+      - name
+      - options
+      - sellingPlans
+    properties:
+      name:
+        type: string
+        description: 'The name of the selling plan group'
+      appName:
+        type: string
+        description: 'Name of the app that created the group'
+      options:
+        type: array
+        items:
+          $ref: './types/storefront/products.yaml#/Products/SellingPlanGroupOption'
+        description: 'Options available in the storefront dropdown'
+      sellingPlans:
+        $ref: './types/storefront/products.yaml#/Products/SellingPlanConnection'
+
+  SellingPlanGroupOption:
+    type: object
+    description: 'An option in a selling plan group'
+    required:
+      - name
+      - values
+    properties:
+      name:
+        type: string
+        description: 'The name of the option (e.g., "Delivery every")'
+      values:
+        type: array
+        items:
+          type: string
+        description: 'Available values (e.g., "1 week", "2 weeks")'
+
+  SellingPlanGroupConnection:
+    type: object
+    description: 'Paginated list of selling plan groups'
+    required:
+      - edges
+    properties:
+      edges:
+        type: array
+        items:
+          $ref: './types/storefront/products.yaml#/Products/SellingPlanGroupEdge'
+      nodes:
+        type: array
+        items:
+          $ref: './types/storefront/products.yaml#/Products/SellingPlanGroup'
+      pageInfo:
+        $ref: './types/storefront/common.yaml#/Common/PageInfo'
+
+  SellingPlanGroupEdge:
+    type: object
+    description: 'An edge in a selling plan group connection'
+    required:
+      - node
+    properties:
+      node:
+        $ref: './types/storefront/products.yaml#/Products/SellingPlanGroup'
+      cursor:
+        type: string
+
+  SellingPlanConnection:
+    type: object
+    description: 'Paginated list of selling plans'
+    required:
+      - edges
+    properties:
+      edges:
+        type: array
+        items:
+          $ref: './types/storefront/products.yaml#/Products/SellingPlanEdge'
+      nodes:
+        type: array
+        items:
+          $ref: './types/storefront/cart.yaml#/Cart/SellingPlan'
+      pageInfo:
+        $ref: './types/storefront/common.yaml#/Common/PageInfo'
+
+  SellingPlanEdge:
+    type: object
+    description: 'An edge in a selling plan connection'
+    required:
+      - node
+    properties:
+      node:
+        $ref: './types/storefront/cart.yaml#/Cart/SellingPlan'
+      cursor:
+        type: string
+
+  SellingPlanAllocationConnection:
+    type: object
+    description: 'Paginated list of selling plan allocations'
+    required:
+      - edges
+    properties:
+      edges:
+        type: array
+        items:
+          $ref: './types/storefront/products.yaml#/Products/SellingPlanAllocationEdge'
+      nodes:
+        type: array
+        items:
+          $ref: './types/storefront/cart.yaml#/Cart/SellingPlanAllocation'
+      pageInfo:
+        $ref: './types/storefront/common.yaml#/Common/PageInfo'
+
+  SellingPlanAllocationEdge:
+    type: object
+    description: 'An edge in a selling plan allocation connection'
+    required:
+      - node
+    properties:
+      node:
+        $ref: './types/storefront/cart.yaml#/Cart/SellingPlanAllocation'
+      cursor:
+        type: string
+
+  # Enums for product queries
+  ProductSortKeys:
+    type: string
+    description: 'Sort keys for product queries'
+    enum:
+      - TITLE
+      - PRODUCT_TYPE
+      - VENDOR
+      - UPDATED_AT
+      - CREATED_AT
+      - BEST_SELLING
+      - PRICE
+      - ID
+      - RELEVANCE
+
+  ProductRecommendationIntent:
+    type: string
+    description: 'Intent for product recommendations'
+    enum:
+      - RELATED
+      - COMPLEMENTARY
+
+  # Query argument types
+  GetProductsArgs:
+    type: object
+    description: 'Arguments for fetching products'
+    properties:
+      first:
+        type: number
+      after:
+        type: string
+      last:
+        type: number
+      before:
+        type: string
+      reverse:
+        type: boolean
+      sortKey:
+        $ref: './types/storefront/products.yaml#/Products/ProductSortKeys'
+      query:
+        type: string
+
+  GetProductRecommendationsArgs:
+    type: object
+    description: 'Arguments for fetching product recommendations'
+    required:
+      - productId
+    properties:
+      productId:
+        type: string
+      intent:
+        $ref: './types/storefront/products.yaml#/Products/ProductRecommendationIntent'

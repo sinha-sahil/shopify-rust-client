@@ -1,0 +1,125 @@
+# Error types for Shopify Storefront API
+# Non-top file - must use full paths for all references
+
+Errors:
+  StorefrontErrorCode:
+    type: string
+    description: 'Error codes from Storefront API'
+    enum:
+      - THROTTLED
+      - ACCESS_DENIED
+      - SHOP_INACTIVE
+      - INTERNAL_SERVER_ERROR
+      - UNPROCESSABLE
+      - INVALID_ARGUMENT
+      - NOT_FOUND
+      - TOO_COMPLEX
+      - TIMEOUT
+
+  StorefrontError:
+    type: object
+    description: 'An error from the Storefront API'
+    required:
+      - message
+    properties:
+      message:
+        type: string
+        description: 'Error message'
+      locations:
+        type: array
+        items:
+          $ref: './types/storefront/errors.yaml#/Errors/ErrorLocation'
+      path:
+        type: array
+        items:
+          type: string
+        description: 'Path to the field that caused the error'
+      extensions:
+        $ref: './types/storefront/errors.yaml#/Errors/ErrorExtensions'
+
+  ErrorLocation:
+    type: object
+    description: 'Location of an error in the query'
+    required:
+      - line
+      - column
+    properties:
+      line:
+        type: number
+      column:
+        type: number
+
+  ErrorExtensions:
+    type: object
+    description: 'Additional error information'
+    properties:
+      code:
+        $ref: './types/storefront/errors.yaml#/Errors/StorefrontErrorCode'
+      requestId:
+        type: string
+        description: 'Request ID for debugging'
+
+  UserError:
+    type: object
+    description: 'A user-facing error from a mutation'
+    required:
+      - message
+    properties:
+      field:
+        type: array
+        items:
+          type: string
+        description: 'Path to the field that caused the error'
+      message:
+        type: string
+        description: 'Error message'
+      code:
+        type: string
+        description: 'Error code'
+
+  GraphQLResponseData:
+    type: object
+    description: 'Response data container'
+    additionalProperties: true
+
+  GraphQLResponse:
+    type: object
+    description: 'Raw GraphQL response structure'
+    properties:
+      data:
+        $ref: './types/storefront/errors.yaml#/Errors/GraphQLResponseData'
+      errors:
+        type: array
+        items:
+          $ref: './types/storefront/errors.yaml#/Errors/StorefrontError'
+      extensions:
+        $ref: './types/storefront/errors.yaml#/Errors/ResponseExtensions'
+
+  ResponseExtensions:
+    type: object
+    description: 'Extensions in a GraphQL response'
+    properties:
+      cost:
+        $ref: './types/storefront/errors.yaml#/Errors/QueryCost'
+
+  QueryCost:
+    type: object
+    description: 'Query cost information'
+    properties:
+      requestedQueryCost:
+        type: number
+      actualQueryCost:
+        type: number
+      throttleStatus:
+        $ref: './types/storefront/errors.yaml#/Errors/ThrottleStatus'
+
+  ThrottleStatus:
+    type: object
+    description: 'Throttle status for rate limiting'
+    properties:
+      maximumAvailable:
+        type: number
+      currentlyAvailable:
+        type: number
+      restoreRate:
+        type: number

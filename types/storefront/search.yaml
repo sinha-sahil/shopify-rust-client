@@ -1,0 +1,307 @@
+# Search types for Shopify Storefront API
+# Non-top file - must use full paths for all references
+
+Search:
+  # SearchResultItem is a UNION type in GraphQL (Product | Page | Article | Collection)
+  # In TypeScript, we represent this as a discriminated union
+  SearchResultItemType:
+    type: string
+    description: 'Type of search result item (discriminator for union)'
+    enum:
+      - PRODUCT
+      - PAGE
+      - ARTICLE
+      - COLLECTION
+
+  # Named enum for SearchResultItem __typename to avoid duplicate TypenameEnum
+  SearchResultItemTypename:
+    type: string
+    description: 'GraphQL type name for search result items'
+    enum:
+      - Product
+      - Page
+      - Article
+      - Collection
+
+  # The SearchResultItemConnection returned by the search query
+  SearchResultItemConnection:
+    type: object
+    description: 'Search results from a full-text search'
+    required:
+      - totalCount
+      - nodes
+      - pageInfo
+    properties:
+      totalCount:
+        type: integer
+        description: 'Total number of matching results'
+      edges:
+        type: array
+        items:
+          $ref: './types/storefront/search.yaml#/Search/SearchResultItemEdge'
+      nodes:
+        type: array
+        items:
+          $ref: './types/storefront/search.yaml#/Search/SearchResultItem'
+      pageInfo:
+        $ref: './types/storefront/common.yaml#/Common/PageInfo'
+      productFilters:
+        type: array
+        items:
+          $ref: './types/storefront/collections.yaml#/Collections/Filter'
+        description: 'Available product filters for refining search'
+
+  SearchResultItemEdge:
+    type: object
+    description: 'An edge in search results'
+    required:
+      - node
+      - cursor
+    properties:
+      node:
+        $ref: './types/storefront/search.yaml#/Search/SearchResultItem'
+      cursor:
+        type: string
+
+  # Union type representation - the actual item can be Product, Page, Article, or Collection
+  # At runtime, check __typename to determine the actual type
+  SearchResultItem:
+    type: object
+    description: 'A search result item - union of Product, Page, Article, Collection. Check __typename field.'
+    properties:
+      __typename:
+        $ref: './types/storefront/search.yaml#/Search/SearchResultItemTypename'
+        description: 'The GraphQL type name (Product, Page, Article, Collection)'
+      # Common fields that exist on all types
+      id:
+        type: string
+      title:
+        type: string
+      handle:
+        type: string
+      trackingParameters:
+        type: string
+        description: 'URL parameters for analytics tracking'
+      # Product-specific fields
+      availableForSale:
+        type: boolean
+      priceRange:
+        $ref: './types/storefront/products.yaml#/Products/ProductPriceRange'
+      compareAtPriceRange:
+        $ref: './types/storefront/products.yaml#/Products/ProductPriceRange'
+      featuredImage:
+        $ref: './types/storefront/common.yaml#/Common/Image'
+      vendor:
+        type: string
+      productType:
+        type: string
+      tags:
+        type: array
+        items:
+          type: string
+      # Page-specific fields
+      body:
+        type: string
+      bodySummary:
+        type: string
+      # Article-specific fields
+      content:
+        type: string
+      contentHtml:
+        type: string
+      excerpt:
+        type: string
+      excerptHtml:
+        type: string
+      publishedAt:
+        type: string
+        format: date-time
+      author:
+        $ref: './types/storefront/content.yaml#/Content/ArticleAuthor'
+      blog:
+        $ref: './types/storefront/content.yaml#/Content/BlogSummary'
+      # Collection-specific fields
+      description:
+        type: string
+      descriptionHtml:
+        type: string
+      image:
+        $ref: './types/storefront/common.yaml#/Common/Image'
+
+  # Predictive search types
+  PredictiveSearchResult:
+    type: object
+    description: 'Results from predictive search query'
+    required:
+      - products
+      - collections
+      - pages
+      - articles
+      - queries
+    properties:
+      products:
+        type: array
+        items:
+          $ref: './types/storefront/products.yaml#/Products/Product'
+        description: 'Products matching the search'
+      collections:
+        type: array
+        items:
+          $ref: './types/storefront/collections.yaml#/Collections/Collection'
+        description: 'Collections matching the search'
+      pages:
+        type: array
+        items:
+          $ref: './types/storefront/content.yaml#/Content/Page'
+        description: 'Pages matching the search'
+      articles:
+        type: array
+        items:
+          $ref: './types/storefront/content.yaml#/Content/Article'
+        description: 'Articles matching the search'
+      queries:
+        type: array
+        items:
+          $ref: './types/storefront/search.yaml#/Search/SearchQuerySuggestion'
+        description: 'Search query suggestions'
+
+  SearchQuerySuggestion:
+    type: object
+    description: 'A search query suggestion'
+    required:
+      - text
+      - styledText
+    properties:
+      text:
+        type: string
+        description: 'The suggested query text'
+      styledText:
+        type: string
+        description: 'Query text with HTML highlighting'
+      trackingParameters:
+        type: string
+        description: 'URL parameters for analytics tracking'
+
+  # Enums for search queries
+  SearchSortKeys:
+    type: string
+    description: 'Sort keys for search queries'
+    enum:
+      - RELEVANCE
+      - PRICE
+
+  SearchType:
+    type: string
+    description: 'Types of resources to search'
+    enum:
+      - PRODUCT
+      - PAGE
+      - ARTICLE
+
+  PredictiveSearchType:
+    type: string
+    description: 'Types of resources for predictive search'
+    enum:
+      - PRODUCT
+      - COLLECTION
+      - PAGE
+      - ARTICLE
+      - QUERY
+
+  SearchPrefixQueryType:
+    type: string
+    description: 'How to treat the last word in the search query'
+    enum:
+      - LAST
+      - NONE
+
+  SearchUnavailableProductsType:
+    type: string
+    description: 'How to handle unavailable products in search'
+    enum:
+      - SHOW
+      - HIDE
+      - LAST
+
+  PredictiveSearchLimitScope:
+    type: string
+    description: 'Scope for predictive search result limit'
+    enum:
+      - ALL
+      - EACH
+
+  SearchableField:
+    type: string
+    description: 'Specifies fields to search within'
+    enum:
+      - AUTHOR
+      - BODY
+      - PRODUCT_TYPE
+      - TAG
+      - TITLE
+      - VARIANTS_BARCODE
+      - VARIANTS_SKU
+      - VARIANTS_TITLE
+      - VENDOR
+
+  # Query argument types
+  SearchArgs:
+    type: object
+    description: 'Arguments for search queries'
+    required:
+      - query
+    properties:
+      query:
+        type: string
+        description: 'Search query string'
+      first:
+        type: integer
+      after:
+        type: string
+      last:
+        type: integer
+      before:
+        type: string
+      reverse:
+        type: boolean
+      sortKey:
+        $ref: './types/storefront/search.yaml#/Search/SearchSortKeys'
+      types:
+        type: array
+        items:
+          $ref: './types/storefront/search.yaml#/Search/SearchType'
+        description: 'Types of resources to search'
+      productFilters:
+        type: array
+        items:
+          $ref: './types/storefront/common.yaml#/Common/ProductFilter'
+      prefix:
+        $ref: './types/storefront/search.yaml#/Search/SearchPrefixQueryType'
+      unavailableProducts:
+        $ref: './types/storefront/search.yaml#/Search/SearchUnavailableProductsType'
+
+  PredictiveSearchArgs:
+    type: object
+    description: 'Arguments for predictive search queries'
+    required:
+      - query
+    properties:
+      query:
+        type: string
+        description: 'Search query string'
+      limit:
+        type: integer
+        description: 'Maximum number of results'
+      limitScope:
+        $ref: './types/storefront/search.yaml#/Search/PredictiveSearchLimitScope'
+      types:
+        type: array
+        items:
+          $ref: './types/storefront/search.yaml#/Search/PredictiveSearchType'
+      searchableFields:
+        type: array
+        items:
+          $ref: './types/storefront/search.yaml#/Search/SearchableField'
+        description: 'Fields to search within'
+      unavailableProducts:
+        $ref: './types/storefront/search.yaml#/Search/SearchUnavailableProductsType'

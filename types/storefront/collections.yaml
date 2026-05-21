@@ -1,0 +1,199 @@
+# Collection types for Shopify Storefront API
+# Non-top file - must use full paths for all references
+
+Collections:
+  Collection:
+    type: object
+    description: 'A collection of products to organize and make shops easier to browse'
+    required:
+      - id
+      - title
+      - handle
+      - seo
+    properties:
+      id:
+        type: string
+        description: 'Globally unique identifier'
+      title:
+        type: string
+        description: 'Collection title (limit 255 characters)'
+      handle:
+        type: string
+        description: 'URL-friendly identifier (limit 255 characters)'
+      description:
+        type: string
+        description: 'Collection description (plain text)'
+      descriptionHtml:
+        type: string
+        description: 'Collection description (HTML)'
+      updatedAt:
+        type: string
+        format: date-time
+        description: 'When the collection was last updated'
+      image:
+        $ref: './types/storefront/common.yaml#/Common/Image'
+        description: 'Image associated with the collection'
+      seo:
+        $ref: './types/storefront/common.yaml#/Common/SEO'
+        description: 'SEO information for the collection'
+      products:
+        $ref: './types/storefront/products.yaml#/Products/ProductConnection'
+        description: 'Products in the collection'
+      metafield:
+        $ref: './types/storefront/metafields.yaml#/Metafields/Metafield'
+        description: 'A custom field associated with the collection'
+      metafields:
+        type: array
+        items:
+          $ref: './types/storefront/metafields.yaml#/Metafields/Metafield'
+        description: 'List of custom fields'
+      onlineStoreUrl:
+        type: string
+        description: 'URL on the online store (null if not published)'
+      trackingParameters:
+        type: string
+        description: 'URL parameters for analytics tracking'
+
+  CollectionConnection:
+    type: object
+    description: 'Paginated list of collections'
+    required:
+      - nodes
+      - pageInfo
+    properties:
+      edges:
+        type: array
+        items:
+          $ref: './types/storefront/collections.yaml#/Collections/CollectionEdge'
+      nodes:
+        type: array
+        items:
+          $ref: './types/storefront/collections.yaml#/Collections/Collection'
+      pageInfo:
+        $ref: './types/storefront/common.yaml#/Common/PageInfo'
+      totalCount:
+        type: integer
+        description: 'The total count of collections'
+
+  CollectionEdge:
+    type: object
+    description: 'An edge in a collection connection'
+    required:
+      - node
+      - cursor
+    properties:
+      node:
+        $ref: './types/storefront/collections.yaml#/Collections/Collection'
+      cursor:
+        type: string
+
+  FilterType:
+    type: string
+    description: 'Type of collection filter'
+    enum:
+      - LIST
+      - PRICE_RANGE
+      - BOOLEAN
+
+  Filter:
+    type: object
+    description: 'A filter for products in a collection'
+    required:
+      - id
+      - label
+      - type
+      - values
+    properties:
+      id:
+        type: string
+      label:
+        type: string
+      type:
+        $ref: './types/storefront/collections.yaml#/Collections/FilterType'
+      values:
+        type: array
+        items:
+          $ref: './types/storefront/collections.yaml#/Collections/FilterValue'
+
+  FilterValue:
+    type: object
+    description: 'A value for a collection filter'
+    required:
+      - id
+      - label
+      - count
+    properties:
+      id:
+        type: string
+      label:
+        type: string
+      count:
+        type: number
+        description: 'Number of products matching this filter value'
+      input:
+        type: string
+        description: 'JSON-encoded filter input'
+
+  # Enums for collection queries
+  CollectionSortKeys:
+    type: string
+    description: 'Sort keys for collection queries'
+    enum:
+      - TITLE
+      - UPDATED_AT
+      - ID
+      - RELEVANCE
+
+  ProductCollectionSortKeys:
+    type: string
+    description: 'Sort keys for products within a collection'
+    enum:
+      - TITLE
+      - PRICE
+      - BEST_SELLING
+      - CREATED
+      - ID
+      - MANUAL
+      - COLLECTION_DEFAULT
+      - RELEVANCE
+
+  # Query argument types
+  GetCollectionsArgs:
+    type: object
+    description: 'Arguments for fetching collections'
+    properties:
+      first:
+        type: number
+      after:
+        type: string
+      last:
+        type: number
+      before:
+        type: string
+      reverse:
+        type: boolean
+      sortKey:
+        $ref: './types/storefront/collections.yaml#/Collections/CollectionSortKeys'
+      query:
+        type: string
+
+  GetCollectionProductsArgs:
+    type: object
+    description: 'Arguments for fetching products in a collection'
+    properties:
+      first:
+        type: number
+      after:
+        type: string
+      last:
+        type: number
+      before:
+        type: string
+      reverse:
+        type: boolean
+      sortKey:
+        $ref: './types/storefront/collections.yaml#/Collections/ProductCollectionSortKeys'
+      filters:
+        type: array
+        items:
+          $ref: './types/storefront/common.yaml#/Common/ProductFilter'

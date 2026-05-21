@@ -2,7 +2,8 @@
 name = "shopify-client"
 version = "0.19.0"
 edition = "2021"
-description = "Modular Shopify library for Rust: API client, type-safe models, and webhook parsing utilities"
+rust-version = "1.70"
+description = "Type-safe, async Rust client for the Shopify Admin and Storefront APIs"
 authors = ["Sahil Sinha"]
 repository = "https://github.com/sinha-sahil/shopify-rust-client"
 homepage = "https://github.com/sinha-sahil/shopify-rust-client"
@@ -11,7 +12,7 @@ license = "MIT"
 keywords = ["shopify", "api", "client", "ecommerce", "webhooks"]
 categories = ["api-bindings", "web-programming::http-client"]
 readme = "README.md"
-exclude = [".gitignore", ".vscode/*"]
+exclude = [".gitignore", ".vscode/*", "types/**"]
 
 [dependencies]
 reqwest = { version = "0.12.4", features = ["json"] }
@@ -20,3 +21,8 @@ serde_json = "1.0.117"
 hmac = "0.12"
 sha2 = "0.10"
 base64 = "0.22"
+time = { version = "0.3", features = ["formatting", "parsing", "serde-human-readable"], optional = true }
+
+[features]
+default = []
+storefront = ["dep:time"]

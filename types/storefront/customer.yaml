@@ -1,0 +1,691 @@
+# Customer types for Shopify Storefront API
+# Non-top file - must use full paths for all references
+
+Customer:
+  # Enum types (extracted to avoid naming conflicts)
+  OrderCancelReason:
+    type: string
+    description: 'Reason for order cancellation'
+    enum:
+      - CUSTOMER
+      - FRAUD
+      - INVENTORY
+      - DECLINED
+      - OTHER
+
+  OrderFulfillmentStatus:
+    type: string
+    description: 'Fulfillment status of an order'
+    enum:
+      - UNFULFILLED
+      - PARTIALLY_FULFILLED
+      - FULFILLED
+      - RESTOCKED
+      - PENDING_FULFILLMENT
+      - OPEN
+      - IN_PROGRESS
+      - ON_HOLD
+      - SCHEDULED
+
+  OrderFinancialStatus:
+    type: string
+    description: 'Financial status of an order'
+    enum:
+      - PENDING
+      - AUTHORIZED
+      - PARTIALLY_PAID
+      - PARTIALLY_REFUNDED
+      - VOIDED
+      - PAID
+      - REFUNDED
+
+  DiscountAllocationMethod:
+    type: string
+    description: 'How a discount is allocated'
+    enum:
+      - ACROSS
+      - EACH
+      - ONE
+
+  DiscountTargetSelection:
+    type: string
+    description: 'What a discount targets'
+    enum:
+      - ALL
+      - ENTITLED
+      - EXPLICIT
+
+  DiscountTargetType:
+    type: string
+    description: 'Type of discount target'
+    enum:
+      - LINE_ITEM
+      - SHIPPING_LINE
+
+  CustomerUserErrorCode:
+    type: string
+    description: 'Error codes for customer operations'
+    enum:
+      - BLANK
+      - INVALID
+      - TAKEN
+      - TOO_LONG
+      - TOO_SHORT
+      - UNIDENTIFIED_CUSTOMER
+      - CUSTOMER_DISABLED
+      - PASSWORD_STARTS_OR_ENDS_WITH_WHITESPACE
+      - CONTAINS_HTML_TAGS
+      - CONTAINS_URL
+      - TOKEN_INVALID
+      - ALREADY_ENABLED
+      - NOT_FOUND
+      - BAD_DOMAIN
+      - INVALID_MULTIPASS_REQUEST
+
+  # Object types
+  Customer:
+    type: object
+    description: 'A customer account with contact information and order history'
+    required:
+      - id
+      - acceptsMarketing
+      - displayName
+      - numberOfOrders
+      - tags
+    properties:
+      id:
+        type: string
+        description: 'Globally unique identifier'
+      email:
+        type: string
+        description: 'Customer email address'
+      firstName:
+        type: string
+        description: 'Customer first name'
+      lastName:
+        type: string
+        description: 'Customer last name'
+      displayName:
+        type: string
+        description: 'Customer name, email or phone number'
+      phone:
+        type: string
+        description: 'Customer phone number'
+      acceptsMarketing:
+        type: boolean
+        description: 'Whether customer consents to marketing emails'
+      createdAt:
+        type: string
+        format: date-time
+        description: 'When the customer was created'
+      updatedAt:
+        type: string
+        format: date-time
+        description: 'When the customer was last updated'
+      numberOfOrders:
+        type: integer
+        description: 'Total number of orders in lifetime'
+      defaultAddress:
+        $ref: './types/storefront/customer.yaml#/Customer/MailingAddress'
+        description: 'Default address'
+      addresses:
+        $ref: './types/storefront/customer.yaml#/Customer/MailingAddressConnection'
+        description: 'Customer addresses'
+      orders:
+        $ref: './types/storefront/customer.yaml#/Customer/OrderConnection'
+        description: 'Customer orders'
+      tags:
+        type: array
+        items:
+          type: string
+        description: 'Tags added to the customer'
+      avatarUrl:
+        type: string
+        description: 'URL of the customer avatar image'
+      metafield:
+        $ref: './types/storefront/metafields.yaml#/Metafields/Metafield'
+        description: 'A custom field associated with the customer'
+      metafields:
+        type: array
+        items:
+          $ref: './types/storefront/metafields.yaml#/Metafields/Metafield'
+        description: 'List of custom fields'
+
+  CustomerSummary:
+    type: object
+    description: 'Minimal customer info for nested references'
+    required:
+      - id
+    properties:
+      id:
+        type: string
+      email:
+        type: string
+      firstName:
+        type: string
+      lastName:
+        type: string
+
+  CustomerAccessToken:
+    type: object
+    description: 'Access token for customer authentication'
+    required:
+      - accessToken
+      - expiresAt
+    properties:
+      accessToken:
+        type: string
+      expiresAt:
+        type: string
+        format: date
+
+  MailingAddress:
+    type: object
+    description: 'A mailing address'
+    required:
+      - id
+    properties:
+      id:
+        type: string
+      firstName:
+        type: string
+      lastName:
+        type: string
+      name:
+        type: string
+        description: 'Full name'
+      company:
+        type: string
+      address1:
+        type: string
+      address2:
+        type: string
+      city:
+        type: string
+      province:
+        type: string
+      provinceCode:
+        type: string
+      country:
+        type: string
+      countryCodeV2:
+        type: string
+      zip:
+        type: string
+      phone:
+        type: string
+      formatted:
+        type: array
+        items:
+          type: string
+        description: 'Formatted address lines'
+      formattedArea:
+        type: string
+        description: 'City, province, country formatted'
+      latitude:
+        type: number
+      longitude:
+        type: number
+
+  MailingAddressConnection:
+    type: object
+    description: 'Paginated list of addresses'
+    required:
+      - edges
+    properties:
+      edges:
+        type: array
+        items:
+          $ref: './types/storefront/customer.yaml#/Customer/MailingAddressEdge'
+      pageInfo:
+        $ref: './types/storefront/common.yaml#/Common/PageInfo'
+
+  MailingAddressEdge:
+    type: object
+    description: 'An edge in an address connection'
+    required:
+      - node
+    properties:
+      node:
+        $ref: './types/storefront/customer.yaml#/Customer/MailingAddress'
+      cursor:
+        type: string
+
+  Order:
+    type: object
+    description: 'A customer order completed through checkout'
+    required:
+      - id
+      - orderNumber
+      - processedAt
+      - fulfillmentStatus
+      - name
+      - statusUrl
+    properties:
+      id:
+        type: string
+        description: 'Globally unique identifier'
+      name:
+        type: string
+        description: 'Order name (e.g., #1001)'
+      orderNumber:
+        type: integer
+        description: 'Unique numeric identifier'
+      processedAt:
+        type: string
+        format: date-time
+        description: 'When the order was processed'
+      canceledAt:
+        type: string
+        format: date-time
+        description: 'When the order was canceled'
+      cancelReason:
+        $ref: './types/storefront/customer.yaml#/Customer/OrderCancelReason'
+      fulfillmentStatus:
+        $ref: './types/storefront/customer.yaml#/Customer/OrderFulfillmentStatus'
+      financialStatus:
+        $ref: './types/storefront/customer.yaml#/Customer/OrderFinancialStatus'
+      statusUrl:
+        type: string
+        description: 'Unique URL for the order status page'
+      customerUrl:
+        type: string
+        description: 'URL the customer can use to access the order'
+      email:
+        type: string
+        description: 'Customer email address'
+      phone:
+        type: string
+        description: 'Customer phone for SMS notifications'
+      customerLocale:
+        type: string
+        description: 'Locale code of the order'
+      currencyCode:
+        type: string
+        description: 'Currency code for payment'
+      edited:
+        type: boolean
+        description: 'Whether the order has had edits applied'
+      currentTotalPrice:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+        description: 'Current total minus removed items'
+      currentSubtotalPrice:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+        description: 'Current subtotal minus removed items'
+      currentTotalTax:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+        description: 'Current total tax minus returned items'
+      currentTotalShippingPrice:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+        description: 'Current shipping total minus refunds'
+      currentTotalDuties:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+        description: 'Current duties total including refunds'
+      originalTotalPrice:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+        description: 'Total price before any edits'
+      originalTotalDuties:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+        description: 'Duties charged at checkout'
+      totalPrice:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+        description: 'Sum of all prices including discounts and taxes'
+      subtotalPrice:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+        description: 'Price before shipping and taxes'
+      totalShippingPrice:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+        description: 'Total cost of shipping'
+      totalTax:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+        description: 'Total cost of taxes'
+      totalRefunded:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+        description: 'Total amount refunded'
+      customAttributes:
+        type: array
+        items:
+          $ref: './types/storefront/common.yaml#/Common/Attribute'
+        description: 'Custom attributes on the order'
+      shippingAddress:
+        $ref: './types/storefront/customer.yaml#/Customer/MailingAddress'
+      billingAddress:
+        $ref: './types/storefront/customer.yaml#/Customer/MailingAddress'
+      lineItems:
+        $ref: './types/storefront/customer.yaml#/Customer/OrderLineItemConnection'
+      shippingDiscountAllocations:
+        type: array
+        items:
+          $ref: './types/storefront/customer.yaml#/Customer/DiscountAllocation'
+        description: 'Discounts applied to shipping'
+      discountApplications:
+        $ref: './types/storefront/customer.yaml#/Customer/DiscountApplicationConnection'
+      successfulFulfillments:
+        type: array
+        items:
+          $ref: './types/storefront/customer.yaml#/Customer/Fulfillment'
+      metafield:
+        $ref: './types/storefront/metafields.yaml#/Metafields/Metafield'
+        description: 'A custom field associated with the order'
+      metafields:
+        type: array
+        items:
+          $ref: './types/storefront/metafields.yaml#/Metafields/Metafield'
+        description: 'List of custom fields'
+
+  DiscountAllocation:
+    type: object
+    description: 'A discount allocation on a line item or shipping'
+    required:
+      - allocatedAmount
+      - discountApplication
+    properties:
+      allocatedAmount:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+        description: 'Amount of the discount'
+      discountApplication:
+        $ref: './types/storefront/customer.yaml#/Customer/DiscountApplication'
+
+  OrderLineItem:
+    type: object
+    description: 'A line item in an order'
+    required:
+      - title
+      - quantity
+    properties:
+      title:
+        type: string
+      quantity:
+        type: number
+      originalTotalPrice:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+      discountedTotalPrice:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+      currentQuantity:
+        type: number
+      customAttributes:
+        type: array
+        items:
+          $ref: './types/storefront/common.yaml#/Common/Attribute'
+      variant:
+        $ref: './types/storefront/products.yaml#/Products/ProductVariant'
+      discountAllocations:
+        type: array
+        items:
+          $ref: './types/storefront/cart.yaml#/Cart/CartDiscountAllocation'
+
+  OrderLineItemEdge:
+    type: object
+    description: 'An edge in an order line item connection'
+    required:
+      - node
+    properties:
+      node:
+        $ref: './types/storefront/customer.yaml#/Customer/OrderLineItem'
+      cursor:
+        type: string
+
+  OrderLineItemConnection:
+    type: object
+    description: 'Paginated list of order line items'
+    required:
+      - edges
+    properties:
+      edges:
+        type: array
+        items:
+          $ref: './types/storefront/customer.yaml#/Customer/OrderLineItemEdge'
+      pageInfo:
+        $ref: './types/storefront/common.yaml#/Common/PageInfo'
+
+  OrderConnection:
+    type: object
+    description: 'Paginated list of orders'
+    required:
+      - edges
+    properties:
+      edges:
+        type: array
+        items:
+          $ref: './types/storefront/customer.yaml#/Customer/OrderEdge'
+      pageInfo:
+        $ref: './types/storefront/common.yaml#/Common/PageInfo'
+
+  OrderEdge:
+    type: object
+    description: 'An edge in an order connection'
+    required:
+      - node
+    properties:
+      node:
+        $ref: './types/storefront/customer.yaml#/Customer/Order'
+      cursor:
+        type: string
+
+  Fulfillment:
+    type: object
+    description: 'Order fulfillment details'
+    required:
+      - trackingCompany
+    properties:
+      trackingCompany:
+        type: string
+      trackingInfo:
+        type: array
+        items:
+          $ref: './types/storefront/customer.yaml#/Customer/FulfillmentTrackingInfo'
+
+  FulfillmentTrackingInfo:
+    type: object
+    description: 'Tracking information for a fulfillment'
+    properties:
+      number:
+        type: string
+      url:
+        type: string
+
+  DiscountApplication:
+    type: object
+    description: 'A discount application'
+    required:
+      - allocationMethod
+      - targetSelection
+      - targetType
+      - value
+    properties:
+      allocationMethod:
+        $ref: './types/storefront/customer.yaml#/Customer/DiscountAllocationMethod'
+      targetSelection:
+        $ref: './types/storefront/customer.yaml#/Customer/DiscountTargetSelection'
+      targetType:
+        $ref: './types/storefront/customer.yaml#/Customer/DiscountTargetType'
+      value:
+        $ref: './types/storefront/customer.yaml#/Customer/DiscountValue'
+
+  DiscountApplicationEdge:
+    type: object
+    description: 'An edge in a discount application connection'
+    required:
+      - node
+    properties:
+      node:
+        $ref: './types/storefront/customer.yaml#/Customer/DiscountApplication'
+      cursor:
+        type: string
+
+  DiscountValue:
+    type: object
+    description: 'The value of a discount'
+    properties:
+      percentage:
+        type: number
+      amount:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+
+  DiscountApplicationConnection:
+    type: object
+    description: 'Paginated list of discount applications'
+    required:
+      - edges
+    properties:
+      edges:
+        type: array
+        items:
+          $ref: './types/storefront/customer.yaml#/Customer/DiscountApplicationEdge'
+      pageInfo:
+        $ref: './types/storefront/common.yaml#/Common/PageInfo'
+
+  CustomerUserError:
+    type: object
+    description: 'An error that occurred during a customer operation'
+    required:
+      - message
+      - code
+    properties:
+      field:
+        type: array
+        items:
+          type: string
+      message:
+        type: string
+      code:
+        $ref: './types/storefront/customer.yaml#/Customer/CustomerUserErrorCode'
+
+  # Input types for mutations
+  CustomerAccessTokenCreateInput:
+    type: object
+    description: 'Input for creating a customer access token (login)'
+    required:
+      - email
+      - password
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+
+  CustomerCreateInput:
+    type: object
+    description: 'Input for creating a new customer'
+    required:
+      - email
+      - password
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+      firstName:
+        type: string
+      lastName:
+        type: string
+      phone:
+        type: string
+      acceptsMarketing:
+        type: boolean
+
+  CustomerUpdateInput:
+    type: object
+    description: 'Input for updating a customer'
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+      firstName:
+        type: string
+      lastName:
+        type: string
+      phone:
+        type: string
+      acceptsMarketing:
+        type: boolean
+
+  CustomerResetInput:
+    type: object
+    description: 'Input for resetting a customer password'
+    required:
+      - resetToken
+      - password
+    properties:
+      resetToken:
+        type: string
+      password:
+        type: string
+
+  CustomerActivateInput:
+    type: object
+    description: 'Input for activating a customer account'
+    required:
+      - activationToken
+      - password
+    properties:
+      activationToken:
+        type: string
+      password:
+        type: string
+
+  MailingAddressInput:
+    type: object
+    description: 'Input for creating or updating a mailing address'
+    properties:
+      firstName:
+        type: string
+      lastName:
+        type: string
+      company:
+        type: string
+      address1:
+        type: string
+      address2:
+        type: string
+      city:
+        type: string
+      province:
+        type: string
+      country:
+        type: string
+      zip:
+        type: string
+      phone:
+        type: string
+
+  # Mutation result types - using actual Shopify GraphQL field names
+  CustomerMutationResult:
+    type: object
+    description: 'Result of a customer mutation'
+    required:
+      - customerUserErrors
+    properties:
+      customer:
+        $ref: './types/storefront/customer.yaml#/Customer/Customer'
+      customerUserErrors:
+        type: array
+        items:
+          $ref: './types/storefront/customer.yaml#/Customer/CustomerUserError'
+
+  AccessTokenResult:
+    type: object
+    description: 'Result of an access token mutation'
+    required:
+      - customerUserErrors
+    properties:
+      customerAccessToken:
+        $ref: './types/storefront/customer.yaml#/Customer/CustomerAccessToken'
+      customerUserErrors:
+        type: array
+        items:
+          $ref: './types/storefront/customer.yaml#/Customer/CustomerUserError'
+
+  AddressMutationResult:
+    type: object
+    description: 'Result of an address mutation'
+    required:
+      - customerUserErrors
+    properties:
+      customerAddress:
+        $ref: './types/storefront/customer.yaml#/Customer/MailingAddress'
+      customerUserErrors:
+        type: array
+        items:
+          $ref: './types/storefront/customer.yaml#/Customer/CustomerUserError'

@@ -1,0 +1,313 @@
+# Shop types for Shopify Storefront API
+# Non-top file - must use full paths for all references
+
+Shop:
+  Shop:
+    type: object
+    description: 'Shop configuration and information'
+    required:
+      - id
+      - name
+      - moneyFormat
+      - paymentSettings
+      - primaryDomain
+      - shipsToCountries
+    properties:
+      id:
+        type: string
+        description: 'Globally unique identifier'
+      name:
+        type: string
+        description: 'Shop name'
+      description:
+        type: string
+        description: 'Shop description'
+      primaryDomain:
+        $ref: './types/storefront/shop.yaml#/Shop/Domain'
+        description: 'Primary domain of the Online Store'
+      brand:
+        $ref: './types/storefront/shop.yaml#/Shop/Brand'
+        description: 'Shop branding configuration'
+      paymentSettings:
+        $ref: './types/storefront/shop.yaml#/Shop/PaymentSettings'
+        description: 'Payment settings for the shop'
+      shipsToCountries:
+        type: array
+        items:
+          type: string
+        description: 'Country codes the shop ships to'
+      moneyFormat:
+        type: string
+        description: 'Money format string (when currency not specified)'
+      refundPolicy:
+        $ref: './types/storefront/shop.yaml#/Shop/ShopPolicy'
+        description: 'Shop refund policy'
+      privacyPolicy:
+        $ref: './types/storefront/shop.yaml#/Shop/ShopPolicy'
+        description: 'Shop privacy policy'
+      shippingPolicy:
+        $ref: './types/storefront/shop.yaml#/Shop/ShopPolicy'
+        description: 'Shop shipping policy'
+      termsOfService:
+        $ref: './types/storefront/shop.yaml#/Shop/ShopPolicy'
+        description: 'Shop terms of service'
+      subscriptionPolicy:
+        $ref: './types/storefront/shop.yaml#/Shop/ShopPolicyWithDefault'
+        description: 'Shop subscription policy (has default value)'
+      # New fields from the API
+      customerAccountUrl:
+        type: string
+        description: 'URL for customer account (if vanity domain exists)'
+      metafield:
+        $ref: './types/storefront/metafields.yaml#/Metafields/Metafield'
+        description: 'A custom field associated with the shop'
+      metafields:
+        type: array
+        items:
+          $ref: './types/storefront/metafields.yaml#/Metafields/Metafield'
+        description: 'List of custom fields'
+      shopPayInstallmentsPricing:
+        $ref: './types/storefront/shop.yaml#/Shop/ShopPayInstallmentsPricing'
+        description: 'Shop Pay Installments pricing information'
+      socialLoginProviders:
+        type: array
+        items:
+          $ref: './types/storefront/shop.yaml#/Shop/SocialLoginProvider'
+        description: 'Social login providers for customer accounts'
+
+  Domain:
+    type: object
+    description: 'A shop domain'
+    required:
+      - host
+      - url
+    properties:
+      host:
+        type: string
+        description: 'Domain host (e.g., example.myshopify.com)'
+      url:
+        type: string
+        description: 'Full URL (e.g., <https://example.myshopify.com>)'
+
+  Brand:
+    type: object
+    description: 'Shop brand information'
+    properties:
+      logo:
+        $ref: './types/storefront/shop.yaml#/Shop/BrandMediaImage'
+      coverImage:
+        $ref: './types/storefront/shop.yaml#/Shop/BrandMediaImage'
+      colors:
+        $ref: './types/storefront/shop.yaml#/Shop/BrandColors'
+      shortDescription:
+        type: string
+      slogan:
+        type: string
+
+  BrandMediaImage:
+    type: object
+    description: 'A media image for brand assets (logo, cover)'
+    properties:
+      image:
+        $ref: './types/storefront/common.yaml#/Common/Image'
+      alt:
+        type: string
+
+  BrandColors:
+    type: object
+    description: 'Brand color settings'
+    properties:
+      primary:
+        type: array
+        items:
+          $ref: './types/storefront/shop.yaml#/Shop/BrandColorGroup'
+      secondary:
+        type: array
+        items:
+          $ref: './types/storefront/shop.yaml#/Shop/BrandColorGroup'
+
+  BrandColorGroup:
+    type: object
+    description: 'A group of brand colors'
+    properties:
+      background:
+        type: string
+        description: 'Background color (hex)'
+      foreground:
+        type: string
+        description: 'Foreground color (hex)'
+
+  ShopPolicy:
+    type: object
+    description: 'A shop policy configured by the merchant'
+    required:
+      - id
+      - title
+      - handle
+      - body
+      - url
+    properties:
+      id:
+        type: string
+        description: 'Globally unique identifier'
+      title:
+        type: string
+        description: 'Policy title'
+      handle:
+        type: string
+        description: 'Policy handle'
+      body:
+        type: string
+        description: 'Policy text (max 64kb)'
+      url:
+        type: string
+        description: 'Public URL to the policy'
+
+  ShopPolicyWithDefault:
+    type: object
+    description: 'A shop policy with a default value (e.g., subscription policy)'
+    required:
+      - title
+      - handle
+      - body
+      - url
+    properties:
+      id:
+        type: string
+        description: 'Unique ID (null for default policy)'
+      title:
+        type: string
+        description: 'Policy title'
+      handle:
+        type: string
+        description: 'Policy handle'
+      body:
+        type: string
+        description: 'Policy text (max 64kb)'
+      url:
+        type: string
+        description: 'Public URL to the policy'
+
+  ShopPayInstallmentsPricing:
+    type: object
+    description: 'Shop Pay Installments pricing configuration'
+    required:
+      - financingPlans
+      - maxPrice
+      - minPrice
+    properties:
+      financingPlans:
+        type: array
+        items:
+          $ref: './types/storefront/shop.yaml#/Shop/ShopPayInstallmentsFinancingPlan'
+        description: 'Available financing plans'
+      maxPrice:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+        description: 'Maximum price to qualify for financing'
+      minPrice:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+        description: 'Minimum price to qualify for financing'
+
+  ShopPayInstallmentsFinancingPlan:
+    type: object
+    description: 'A Shop Pay Installments financing plan'
+    required:
+      - terms
+    properties:
+      id:
+        type: string
+      terms:
+        type: array
+        items:
+          $ref: './types/storefront/shop.yaml#/Shop/ShopPayInstallmentsFinancingPlanTerm'
+
+  ShopPayInstallmentsFinancingPlanTerm:
+    type: object
+    description: 'A term for a financing plan'
+    required:
+      - loanType
+      - paymentAmount
+    properties:
+      loanType:
+        $ref: './types/storefront/shop.yaml#/Shop/ShopPayInstallmentsLoanType'
+      paymentAmount:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+        description: 'Payment amount per installment'
+      apr:
+        type: number
+        description: 'Annual percentage rate'
+      installmentsCount:
+        type: integer
+        description: 'Number of installments'
+
+  ShopPayInstallmentsLoanType:
+    type: string
+    description: 'The loan type for Shop Pay Installments'
+    enum:
+      - SPLIT_PAY
+      - INTEREST_FREE
+      - INTEREST_BEARING
+
+  SocialLoginProvider:
+    type: object
+    description: 'A social login provider for customer accounts'
+    required:
+      - type
+    properties:
+      type:
+        $ref: './types/storefront/shop.yaml#/Shop/SocialLoginProviderType'
+      clientId:
+        type: string
+        description: 'Client ID for the provider'
+
+  SocialLoginProviderType:
+    type: string
+    description: 'Type of social login provider'
+    enum:
+      - GOOGLE
+      - FACEBOOK
+      - APPLE
+
+  PaymentSettings:
+    type: object
+    description: 'Shop payment settings'
+    required:
+      - countryCode
+      - currencyCode
+    properties:
+      countryCode:
+        type: string
+        description: 'Shop country code'
+      currencyCode:
+        type: string
+        description: 'Shop currency code'
+      acceptedCardBrands:
+        type: array
+        items:
+          type: string
+          enum:
+            - VISA
+            - MASTERCARD
+            - DISCOVER
+            - AMERICAN_EXPRESS
+            - DINERS_CLUB
+            - JCB
+            - EFTPOS_AU
+      cardVaultUrl:
+        type: string
+        description: 'URL for card vaulting'
+      enabledPresentmentCurrencies:
+        type: array
+        items:
+          type: string
+        description: 'Enabled presentment currencies'
+      shopifyPaymentsAccountId:
+        type: string
+      supportedDigitalWallets:
+        type: array
+        items:
+          type: string
+          enum:
+            - APPLE_PAY
+            - GOOGLE_PAY
+            - SHOPIFY_PAY

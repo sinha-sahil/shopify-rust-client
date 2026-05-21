@@ -1,0 +1,465 @@
+# Content types for Shopify Storefront API
+# Non-top file - must use full paths for all references
+
+Content:
+  Page:
+    type: object
+    description: 'A page holding static HTML content'
+    required:
+      - id
+      - title
+      - handle
+      - body
+      - bodySummary
+    properties:
+      id:
+        type: string
+        description: 'Globally unique identifier'
+      title:
+        type: string
+        description: 'Page title'
+      handle:
+        type: string
+        description: 'URL-friendly identifier'
+      body:
+        type: string
+        description: 'Page content (HTML)'
+      bodySummary:
+        type: string
+        description: 'Summary of the page content'
+      createdAt:
+        type: string
+        format: date-time
+        description: 'When the page was created'
+      updatedAt:
+        type: string
+        format: date-time
+        description: 'When the page was last updated'
+      seo:
+        $ref: './types/storefront/common.yaml#/Common/SEO'
+        description: 'SEO information for the page'
+      metafield:
+        $ref: './types/storefront/metafields.yaml#/Metafields/Metafield'
+        description: 'A custom field associated with the page'
+      metafields:
+        type: array
+        items:
+          $ref: './types/storefront/metafields.yaml#/Metafields/Metafield'
+        description: 'List of custom fields'
+      onlineStoreUrl:
+        type: string
+        description: 'URL on the online store (null if not published)'
+      trackingParameters:
+        type: string
+        description: 'URL parameters for analytics tracking'
+
+  PageConnection:
+    type: object
+    description: 'Paginated list of pages'
+    required:
+      - nodes
+      - pageInfo
+    properties:
+      edges:
+        type: array
+        items:
+          $ref: './types/storefront/content.yaml#/Content/PageEdge'
+      nodes:
+        type: array
+        items:
+          $ref: './types/storefront/content.yaml#/Content/Page'
+      pageInfo:
+        $ref: './types/storefront/common.yaml#/Common/PageInfo'
+
+  PageEdge:
+    type: object
+    description: 'An edge in a page connection'
+    required:
+      - node
+      - cursor
+    properties:
+      node:
+        $ref: './types/storefront/content.yaml#/Content/Page'
+      cursor:
+        type: string
+
+  Blog:
+    type: object
+    description: 'A blog containing articles'
+    required:
+      - id
+      - title
+      - handle
+    properties:
+      id:
+        type: string
+        description: 'Globally unique identifier'
+      title:
+        type: string
+        description: 'Blog title'
+      handle:
+        type: string
+        description: 'URL-friendly identifier'
+      seo:
+        $ref: './types/storefront/common.yaml#/Common/SEO'
+        description: 'SEO information for the blog'
+      articles:
+        $ref: './types/storefront/content.yaml#/Content/ArticleConnection'
+        description: 'Articles in the blog'
+      authors:
+        type: array
+        items:
+          $ref: './types/storefront/content.yaml#/Content/ArticleAuthor'
+        description: 'Authors who have written articles in this blog'
+      metafield:
+        $ref: './types/storefront/metafields.yaml#/Metafields/Metafield'
+        description: 'A custom field associated with the blog'
+      metafields:
+        type: array
+        items:
+          $ref: './types/storefront/metafields.yaml#/Metafields/Metafield'
+        description: 'List of custom fields'
+      onlineStoreUrl:
+        type: string
+        description: 'URL on the online store'
+
+  BlogConnection:
+    type: object
+    description: 'Paginated list of blogs'
+    required:
+      - nodes
+      - pageInfo
+    properties:
+      edges:
+        type: array
+        items:
+          $ref: './types/storefront/content.yaml#/Content/BlogEdge'
+      nodes:
+        type: array
+        items:
+          $ref: './types/storefront/content.yaml#/Content/Blog'
+      pageInfo:
+        $ref: './types/storefront/common.yaml#/Common/PageInfo'
+
+  BlogEdge:
+    type: object
+    description: 'An edge in a blog connection'
+    required:
+      - node
+      - cursor
+    properties:
+      node:
+        $ref: './types/storefront/content.yaml#/Content/Blog'
+      cursor:
+        type: string
+
+  Article:
+    type: object
+    description: 'A blog article'
+    required:
+      - id
+      - title
+      - handle
+    properties:
+      id:
+        type: string
+        description: 'Globally unique identifier'
+      title:
+        type: string
+        description: 'Article title'
+      handle:
+        type: string
+        description: 'URL-friendly identifier'
+      content:
+        type: string
+        description: 'Article content (plain text)'
+      contentHtml:
+        type: string
+        description: 'Article content (HTML)'
+      excerpt:
+        type: string
+        description: 'Article excerpt (plain text)'
+      excerptHtml:
+        type: string
+        description: 'Article excerpt (HTML)'
+      publishedAt:
+        type: string
+        format: date-time
+        description: 'When the article was published'
+      authorV2:
+        $ref: './types/storefront/content.yaml#/Content/ArticleAuthor'
+        description: 'The author of the article'
+      image:
+        $ref: './types/storefront/common.yaml#/Common/Image'
+        description: 'Featured image for the article'
+      seo:
+        $ref: './types/storefront/common.yaml#/Common/SEO'
+        description: 'SEO information for the article'
+      tags:
+        type: array
+        items:
+          type: string
+        description: 'Tags associated with the article'
+      blog:
+        $ref: './types/storefront/content.yaml#/Content/BlogSummary'
+        description: 'The blog this article belongs to'
+      metafield:
+        $ref: './types/storefront/metafields.yaml#/Metafields/Metafield'
+        description: 'A custom field associated with the article'
+      metafields:
+        type: array
+        items:
+          $ref: './types/storefront/metafields.yaml#/Metafields/Metafield'
+        description: 'List of custom fields'
+      onlineStoreUrl:
+        type: string
+        description: 'URL on the online store'
+      trackingParameters:
+        type: string
+        description: 'URL parameters for analytics tracking'
+
+  ArticleAuthor:
+    type: object
+    description: 'An article author'
+    properties:
+      name:
+        type: string
+      bio:
+        type: string
+      email:
+        type: string
+      firstName:
+        type: string
+      lastName:
+        type: string
+
+  BlogSummary:
+    type: object
+    description: 'Minimal blog info for nested references'
+    required:
+      - id
+      - title
+      - handle
+    properties:
+      id:
+        type: string
+      title:
+        type: string
+      handle:
+        type: string
+
+  ArticleConnection:
+    type: object
+    description: 'Paginated list of articles'
+    required:
+      - nodes
+      - pageInfo
+    properties:
+      edges:
+        type: array
+        items:
+          $ref: './types/storefront/content.yaml#/Content/ArticleEdge'
+      nodes:
+        type: array
+        items:
+          $ref: './types/storefront/content.yaml#/Content/Article'
+      pageInfo:
+        $ref: './types/storefront/common.yaml#/Common/PageInfo'
+
+  ArticleEdge:
+    type: object
+    description: 'An edge in an article connection'
+    required:
+      - node
+      - cursor
+    properties:
+      node:
+        $ref: './types/storefront/content.yaml#/Content/Article'
+      cursor:
+        type: string
+
+  Menu:
+    type: object
+    description: 'A navigation menu'
+    required:
+      - id
+      - handle
+      - title
+      - items
+    properties:
+      id:
+        type: string
+      handle:
+        type: string
+      title:
+        type: string
+      items:
+        type: array
+        items:
+          $ref: './types/storefront/content.yaml#/Content/MenuItem'
+
+  MenuItemType:
+    type: string
+    description: 'Type of menu item'
+    enum:
+      - HTTP
+      - COLLECTION
+      - PRODUCT
+      - PAGE
+      - BLOG
+      - ARTICLE
+      - SHOP_POLICY
+      - SEARCH
+      - CATALOG
+      - FRONTPAGE
+
+  MenuItemResourceType:
+    type: string
+    description: 'Type of resource a menu item links to'
+    enum:
+      - Collection
+      - Product
+      - Page
+      - Blog
+      - Article
+      - ShopPolicy
+
+  MenuItem:
+    type: object
+    description: 'A menu item'
+    required:
+      - id
+      - title
+      - type
+      - url
+    properties:
+      id:
+        type: string
+      title:
+        type: string
+      type:
+        $ref: './types/storefront/content.yaml#/Content/MenuItemType'
+      url:
+        type: string
+      children:
+        type: array
+        items:
+          $ref: './types/storefront/content.yaml#/Content/MenuItem'
+        description: 'Nested menu items'
+      resource:
+        $ref: './types/storefront/content.yaml#/Content/MenuItemResource'
+
+  MenuItemResource:
+    type: object
+    description: 'The resource a menu item links to'
+    properties:
+      resourceType:
+        $ref: './types/storefront/content.yaml#/Content/MenuItemResourceType'
+      id:
+        type: string
+      title:
+        type: string
+      handle:
+        type: string
+
+  # Enums for content queries
+  PageSortKeys:
+    type: string
+    description: 'Sort keys for page queries'
+    enum:
+      - TITLE
+      - UPDATED_AT
+      - ID
+      - RELEVANCE
+
+  BlogSortKeys:
+    type: string
+    description: 'Sort keys for blog queries'
+    enum:
+      - TITLE
+      - HANDLE
+      - ID
+      - RELEVANCE
+
+  ArticleSortKeys:
+    type: string
+    description: 'Sort keys for article queries'
+    enum:
+      - TITLE
+      - BLOG_TITLE
+      - AUTHOR
+      - UPDATED_AT
+      - PUBLISHED_AT
+      - ID
+      - RELEVANCE
+
+  # Query argument types
+  GetPagesArgs:
+    type: object
+    description: 'Arguments for fetching pages'
+    properties:
+      first:
+        type: number
+      after:
+        type: string
+      last:
+        type: number
+      before:
+        type: string
+      reverse:
+        type: boolean
+      sortKey:
+        $ref: './types/storefront/content.yaml#/Content/PageSortKeys'
+      query:
+        type: string
+
+  GetBlogsArgs:
+    type: object
+    description: 'Arguments for fetching blogs'
+    properties:
+      first:
+        type: number
+      after:
+        type: string
+      last:
+        type: number
+      before:
+        type: string
+      reverse:
+        type: boolean
+      sortKey:
+        $ref: './types/storefront/content.yaml#/Content/BlogSortKeys'
+      query:
+        type: string
+
+  GetArticlesArgs:
+    type: object
+    description: 'Arguments for fetching articles'
+    properties:
+      first:
+        type: number
+      after:
+        type: string
+      last:
+        type: number
+      before:
+        type: string
+      reverse:
+        type: boolean
+      sortKey:
+        $ref: './types/storefront/content.yaml#/Content/ArticleSortKeys'
+      query:
+        type: string
+
+  GetBlogArticlesArgs:
+    type: object
+    description: 'Arguments for fetching articles within a blog'
+    properties:
+      articlesFirst:
+        type: number
+      articlesAfter:
+        type: string
+      articlesReverse:
+        type: boolean
+      articlesSortKey:
+        $ref: './types/storefront/content.yaml#/Content/ArticleSortKeys'

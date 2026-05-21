@@ -1,0 +1,234 @@
+# Common types shared across the Shopify Storefront API
+# Non-top file - must use full paths for all references
+
+Common:
+  Money:
+    type: object
+    description: 'Represents a monetary value with currency (MoneyV2)'
+    required:
+      - amount
+      - currencyCode
+    properties:
+      amount:
+        type: string
+        description: 'Decimal money amount (stored as string for precision)'
+      currencyCode:
+        type: string
+        description: 'Currency code (ISO 4217, e.g., USD, EUR)'
+
+  MoneyInput:
+    type: object
+    description: 'Input for monetary values'
+    required:
+      - amount
+      - currencyCode
+    properties:
+      amount:
+        type: string
+        description: 'Decimal money amount'
+      currencyCode:
+        type: string
+        description: 'Currency code (ISO 4217)'
+
+  Image:
+    type: object
+    description: 'Represents an image resource'
+    required:
+      - url
+    properties:
+      id:
+        type: string
+        description: 'Globally unique identifier'
+      url:
+        type: string
+        description: 'The image URL'
+      altText:
+        type: string
+        description: 'Alt text for accessibility'
+      width:
+        type: integer
+        description: 'Image width in pixels'
+      height:
+        type: integer
+        description: 'Image height in pixels'
+
+  PageInfo:
+    type: object
+    description: 'Pagination information for connections'
+    required:
+      - hasNextPage
+      - hasPreviousPage
+    properties:
+      hasNextPage:
+        type: boolean
+        description: 'Whether there are more items after'
+      hasPreviousPage:
+        type: boolean
+        description: 'Whether there are more items before'
+      startCursor:
+        type: string
+        description: 'Cursor for the first item'
+      endCursor:
+        type: string
+        description: 'Cursor for the last item'
+
+  SEO:
+    type: object
+    description: 'SEO metadata'
+    properties:
+      title:
+        type: string
+        description: 'SEO title'
+      description:
+        type: string
+        description: 'SEO description'
+
+  Attribute:
+    type: object
+    description: 'Key-value attribute'
+    required:
+      - key
+      - value
+    properties:
+      key:
+        type: string
+        description: 'Attribute key'
+      value:
+        type: string
+        description: 'Attribute value'
+
+  AttributeInput:
+    type: object
+    description: 'Input for key-value attributes'
+    required:
+      - key
+      - value
+    properties:
+      key:
+        type: string
+        description: 'Attribute key'
+      value:
+        type: string
+        description: 'Attribute value'
+
+  Count:
+    type: object
+    description: 'A count of items with precision'
+    properties:
+      count:
+        type: integer
+        description: 'The count value'
+      precision:
+        $ref: './types/storefront/common.yaml#/Common/CountPrecision'
+        description: 'Precision of the count'
+
+  CountPrecision:
+    type: string
+    description: 'Precision of a count value'
+    enum:
+      - EXACT
+      - AT_LEAST
+
+  PriceRange:
+    type: object
+    description: 'Price range for a product (deprecated - use ProductPriceRange)'
+    required:
+      - minVariantPrice
+      - maxVariantPrice
+    properties:
+      minVariantPrice:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+        description: 'The lowest variant price'
+      maxVariantPrice:
+        $ref: './types/storefront/common.yaml#/Common/Money'
+        description: 'The highest variant price'
+
+  SelectedOption:
+    type: object
+    description: 'A selected product option'
+    required:
+      - name
+      - value
+    properties:
+      name:
+        type: string
+        description: 'Option name (e.g., Size, Color)'
+      value:
+        type: string
+        description: 'Option value (e.g., Medium, Red)'
+
+  # Pagination input for queries
+  PaginationArgs:
+    type: object
+    description: 'Pagination arguments for list queries'
+    properties:
+      first:
+        type: number
+        description: 'Number of items to fetch from the start'
+      after:
+        type: string
+        description: 'Cursor to fetch items after'
+      last:
+        type: number
+        description: 'Number of items to fetch from the end'
+      before:
+        type: string
+        description: 'Cursor to fetch items before'
+
+  # Product filter input used in collection and search queries
+  ProductFilter:
+    type: object
+    description: 'Filter for products in collections or search'
+    properties:
+      productVendor:
+        type: string
+      productType:
+        type: string
+      variantOption:
+        $ref: './types/storefront/common.yaml#/Common/VariantOptionFilter'
+      available:
+        type: boolean
+      price:
+        $ref: './types/storefront/common.yaml#/Common/PriceFilter'
+      productMetafield:
+        $ref: './types/storefront/common.yaml#/Common/MetafieldFilter'
+      variantMetafield:
+        $ref: './types/storefront/common.yaml#/Common/MetafieldFilter'
+      tag:
+        type: string
+
+  VariantOptionFilter:
+    type: object
+    description: 'Filter by variant option'
+    required:
+      - name
+      - value
+    properties:
+      name:
+        type: string
+      value:
+        type: string
+
+  PriceFilter:
+    type: object
+    description: 'Filter by price range'
+    properties:
+      min:
+        type: number
+      max:
+        type: number
+
+  MetafieldFilter:
+    type: object
+    description: 'Filter by metafield value'
+    required:
+      - namespace
+      - key
+      - value
+    properties:
+      namespace:
+        type: string
+      key:
+        type: string
+      value:
+        type: string

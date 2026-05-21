@@ -1,0 +1,363 @@
+# GraphQL Response types for Shopify Storefront API
+# These match the actual GraphQL response structure
+
+Responses:
+  # Product responses
+  ProductResponse:
+    type: object
+    description: 'GraphQL response containing a single product'
+    properties:
+      product:
+        $ref: './types/storefront/products.yaml#/Products/Product'
+
+  ProductsResponse:
+    type: object
+    description: 'GraphQL response containing product connection'
+    properties:
+      products:
+        $ref: './types/storefront/products.yaml#/Products/ProductConnection'
+
+  ProductRecommendationsResponse:
+    type: object
+    description: 'GraphQL response containing product recommendations'
+    properties:
+      productRecommendations:
+        type: array
+        items:
+          $ref: './types/storefront/products.yaml#/Products/Product'
+
+  # Collection responses
+  CollectionResponse:
+    type: object
+    description: 'GraphQL response containing a single collection'
+    properties:
+      collection:
+        $ref: './types/storefront/collections.yaml#/Collections/Collection'
+
+  CollectionsResponse:
+    type: object
+    description: 'GraphQL response containing collection connection'
+    properties:
+      collections:
+        $ref: './types/storefront/collections.yaml#/Collections/CollectionConnection'
+
+  # Cart responses
+  CartResponse:
+    type: object
+    description: 'GraphQL response containing a cart'
+    properties:
+      cart:
+        $ref: './types/storefront/cart.yaml#/Cart/Cart'
+
+  CartCreateResponse:
+    type: object
+    description: 'GraphQL response for cartCreate mutation'
+    properties:
+      cartCreate:
+        $ref: './types/storefront/cart.yaml#/Cart/CartMutationResult'
+
+  CartLinesAddResponse:
+    type: object
+    description: 'GraphQL response for cartLinesAdd mutation'
+    properties:
+      cartLinesAdd:
+        $ref: './types/storefront/cart.yaml#/Cart/CartMutationResult'
+
+  CartLinesUpdateResponse:
+    type: object
+    description: 'GraphQL response for cartLinesUpdate mutation'
+    properties:
+      cartLinesUpdate:
+        $ref: './types/storefront/cart.yaml#/Cart/CartMutationResult'
+
+  CartLinesRemoveResponse:
+    type: object
+    description: 'GraphQL response for cartLinesRemove mutation'
+    properties:
+      cartLinesRemove:
+        $ref: './types/storefront/cart.yaml#/Cart/CartMutationResult'
+
+  CartNoteUpdateResponse:
+    type: object
+    description: 'GraphQL response for cartNoteUpdate mutation'
+    properties:
+      cartNoteUpdate:
+        $ref: './types/storefront/cart.yaml#/Cart/CartMutationResult'
+
+  CartAttributesUpdateResponse:
+    type: object
+    description: 'GraphQL response for cartAttributesUpdate mutation'
+    properties:
+      cartAttributesUpdate:
+        $ref: './types/storefront/cart.yaml#/Cart/CartMutationResult'
+
+  CartBuyerIdentityUpdateResponse:
+    type: object
+    description: 'GraphQL response for cartBuyerIdentityUpdate mutation'
+    properties:
+      cartBuyerIdentityUpdate:
+        $ref: './types/storefront/cart.yaml#/Cart/CartMutationResult'
+
+  CartDiscountCodesUpdateResponse:
+    type: object
+    description: 'GraphQL response for cartDiscountCodesUpdate mutation'
+    properties:
+      cartDiscountCodesUpdate:
+        $ref: './types/storefront/cart.yaml#/Cart/CartMutationResult'
+
+  CartGiftCardCodesAddResponse:
+    type: object
+    description: 'GraphQL response for cartGiftCardCodesAdd mutation'
+    properties:
+      cartGiftCardCodesAdd:
+        $ref: './types/storefront/cart.yaml#/Cart/CartMutationResult'
+
+  # Customer responses
+  CustomerResponse:
+    type: object
+    description: 'GraphQL response containing a customer'
+    properties:
+      customer:
+        $ref: './types/storefront/customer.yaml#/Customer/Customer'
+
+  CustomerAccessTokenCreateResponse:
+    type: object
+    description: 'GraphQL response for customerAccessTokenCreate mutation'
+    properties:
+      customerAccessTokenCreate:
+        $ref: './types/storefront/customer.yaml#/Customer/AccessTokenResult'
+
+  CustomerAccessTokenRenewResponse:
+    type: object
+    description: 'GraphQL response for customerAccessTokenRenew mutation'
+    properties:
+      customerAccessTokenRenew:
+        $ref: './types/storefront/responses.yaml#/Responses/AccessTokenRenewResult'
+
+  # The renew mutation returns plain `UserError` (not `CustomerUserError`), so it
+  # needs a result type distinct from `AccessTokenResult` (which is shared with the
+  # mutations that do return `customerUserErrors`).
+  AccessTokenRenewResult:
+    type: object
+    description: 'Result of customerAccessTokenRenew mutation'
+    properties:
+      customerAccessToken:
+        $ref: './types/storefront/customer.yaml#/Customer/CustomerAccessToken'
+      userErrors:
+        type: array
+        items:
+          $ref: './types/storefront/errors.yaml#/Errors/UserError'
+
+  CustomerAccessTokenDeleteResponse:
+    type: object
+    description: 'GraphQL response for customerAccessTokenDelete mutation'
+    properties:
+      customerAccessTokenDelete:
+        $ref: './types/storefront/responses.yaml#/Responses/CustomerAccessTokenDeleteResult'
+
+  # The delete mutation returns plain `UserError` (the Storefront schema has no
+  # `customerUserErrors` field on this payload).
+  CustomerAccessTokenDeleteResult:
+    type: object
+    description: 'Result of customerAccessTokenDelete mutation'
+    properties:
+      deletedAccessToken:
+        type: string
+      deletedCustomerAccessTokenId:
+        type: string
+      userErrors:
+        type: array
+        items:
+          $ref: './types/storefront/errors.yaml#/Errors/UserError'
+
+  CustomerCreateResponse:
+    type: object
+    description: 'GraphQL response for customerCreate mutation'
+    properties:
+      customerCreate:
+        $ref: './types/storefront/customer.yaml#/Customer/CustomerMutationResult'
+
+  CustomerUpdateResponse:
+    type: object
+    description: 'GraphQL response for customerUpdate mutation'
+    properties:
+      customerUpdate:
+        $ref: './types/storefront/customer.yaml#/Customer/CustomerMutationResult'
+
+  CustomerRecoverResponse:
+    type: object
+    description: 'GraphQL response for customerRecover mutation'
+    properties:
+      customerRecover:
+        $ref: './types/storefront/responses.yaml#/Responses/CustomerRecoverResult'
+
+  CustomerRecoverResult:
+    type: object
+    description: 'Result of customerRecover mutation'
+    properties:
+      customerUserErrors:
+        type: array
+        items:
+          $ref: './types/storefront/customer.yaml#/Customer/CustomerUserError'
+
+  CustomerResetResponse:
+    type: object
+    description: 'GraphQL response for customerReset mutation'
+    properties:
+      customerReset:
+        $ref: './types/storefront/customer.yaml#/Customer/AccessTokenResult'
+
+  CustomerResetByUrlResponse:
+    type: object
+    description: 'GraphQL response for customerResetByUrl mutation'
+    properties:
+      customerResetByUrl:
+        $ref: './types/storefront/customer.yaml#/Customer/AccessTokenResult'
+
+  CustomerActivateResponse:
+    type: object
+    description: 'GraphQL response for customerActivate mutation'
+    properties:
+      customerActivate:
+        $ref: './types/storefront/customer.yaml#/Customer/AccessTokenResult'
+
+  CustomerActivateByUrlResponse:
+    type: object
+    description: 'GraphQL response for customerActivateByUrl mutation'
+    properties:
+      customerActivateByUrl:
+        $ref: './types/storefront/customer.yaml#/Customer/AccessTokenResult'
+
+  CustomerAddressCreateResponse:
+    type: object
+    description: 'GraphQL response for customerAddressCreate mutation'
+    properties:
+      customerAddressCreate:
+        $ref: './types/storefront/customer.yaml#/Customer/AddressMutationResult'
+
+  CustomerAddressUpdateResponse:
+    type: object
+    description: 'GraphQL response for customerAddressUpdate mutation'
+    properties:
+      customerAddressUpdate:
+        $ref: './types/storefront/customer.yaml#/Customer/AddressMutationResult'
+
+  CustomerAddressDeleteResponse:
+    type: object
+    description: 'GraphQL response for customerAddressDelete mutation'
+    properties:
+      customerAddressDelete:
+        $ref: './types/storefront/responses.yaml#/Responses/CustomerAddressDeleteResult'
+
+  CustomerAddressDeleteResult:
+    type: object
+    description: 'Result of customerAddressDelete mutation'
+    properties:
+      deletedCustomerAddressId:
+        type: string
+      customerUserErrors:
+        type: array
+        items:
+          $ref: './types/storefront/customer.yaml#/Customer/CustomerUserError'
+
+  CustomerDefaultAddressUpdateResponse:
+    type: object
+    description: 'GraphQL response for customerDefaultAddressUpdate mutation'
+    properties:
+      customerDefaultAddressUpdate:
+        $ref: './types/storefront/customer.yaml#/Customer/CustomerMutationResult'
+
+  # Search responses
+  SearchResponse:
+    type: object
+    description: 'GraphQL response for search query'
+    properties:
+      search:
+        $ref: './types/storefront/search.yaml#/Search/SearchResultItemConnection'
+
+  PredictiveSearchResponse:
+    type: object
+    description: 'GraphQL response for predictiveSearch query'
+    properties:
+      predictiveSearch:
+        $ref: './types/storefront/search.yaml#/Search/PredictiveSearchResult'
+
+  # Content responses
+  PageResponse:
+    type: object
+    description: 'GraphQL response containing a page'
+    properties:
+      page:
+        $ref: './types/storefront/content.yaml#/Content/Page'
+
+  PagesResponse:
+    type: object
+    description: 'GraphQL response containing page connection'
+    properties:
+      pages:
+        $ref: './types/storefront/content.yaml#/Content/PageConnection'
+
+  BlogResponse:
+    type: object
+    description: 'GraphQL response containing a blog'
+    properties:
+      blog:
+        $ref: './types/storefront/content.yaml#/Content/Blog'
+
+  BlogsResponse:
+    type: object
+    description: 'GraphQL response containing blog connection'
+    properties:
+      blogs:
+        $ref: './types/storefront/content.yaml#/Content/BlogConnection'
+
+  ArticleResponse:
+    type: object
+    description: 'GraphQL response containing an article'
+    properties:
+      article:
+        $ref: './types/storefront/content.yaml#/Content/Article'
+
+  ArticlesResponse:
+    type: object
+    description: 'GraphQL response containing article connection'
+    properties:
+      articles:
+        $ref: './types/storefront/content.yaml#/Content/ArticleConnection'
+
+  MenuResponse:
+    type: object
+    description: 'GraphQL response containing a menu'
+    properties:
+      menu:
+        $ref: './types/storefront/content.yaml#/Content/Menu'
+
+  # Metaobject responses
+  MetaobjectResponse:
+    type: object
+    description: 'GraphQL response containing a metaobject'
+    properties:
+      metaobject:
+        $ref: './types/storefront/metafields.yaml#/Metafields/Metaobject'
+
+  MetaobjectsResponse:
+    type: object
+    description: 'GraphQL response containing metaobject connection'
+    properties:
+      metaobjects:
+        $ref: './types/storefront/metafields.yaml#/Metafields/MetaobjectConnection'
+
+  # Shop responses
+  ShopResponse:
+    type: object
+    description: 'GraphQL response containing shop info'
+    properties:
+      shop:
+        $ref: './types/storefront/shop.yaml#/Shop/Shop'
+
+  LocalizationResponse:
+    type: object
+    description: 'GraphQL response containing localization info'
+    properties:
+      localization:
+        $ref: './types/storefront/localization.yaml#/Localization/Localization'
