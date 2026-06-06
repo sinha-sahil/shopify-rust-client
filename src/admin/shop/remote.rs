@@ -20,11 +20,6 @@ pub async fn get_shop(ctx: &ServiceContext) -> Result<GetShopResp, APIError> {
                     id
                     host
                 }
-                accountOwner {
-                    id
-                    name
-                    email
-                }
                 setupRequired
                 plan {
                     publicDisplayName

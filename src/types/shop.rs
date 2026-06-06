@@ -15,18 +15,10 @@ pub struct Shop {
     pub contact_email: String,
     pub myshopify_domain: String,
     pub primary_domain: Domain,
-    pub account_owner: StaffMember,
     pub plan: ShopPlan,
     #[serde(rename = "shopAddress")]
     pub shop_address: ShopAddress,
     pub setup_required: bool,
-}
-
-#[derive(serde::Deserialize, Debug)]
-pub struct StaffMember {
-    pub id: String,
-    pub name: String,
-    pub email: String,
 }
 
 #[derive(serde::Deserialize, Debug)]
