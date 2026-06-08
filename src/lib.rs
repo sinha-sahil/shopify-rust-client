@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 pub mod admin;
 pub mod common;
+pub mod oauth;
 #[cfg(feature = "storefront")]
 pub mod storefront;
 pub mod types;

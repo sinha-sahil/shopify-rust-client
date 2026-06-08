@@ -21,6 +21,7 @@ serde_json = "1.0.117"
 hmac = "0.12"
 sha2 = "0.10"
 base64 = "0.22"
+hex = "0.4"
 time = { version = "0.3", features = ["formatting", "parsing", "serde-human-readable"], optional = true }
 
 [features]

@@ -7,8 +7,8 @@ use types::{
     WebhookPayload,
 };
 
-pub use types::VerificationError;
-pub use verify::{verify_hmac, verify_hmac_from_headers};
+pub use types::{OAuthRedirectParams, VerificationError};
+pub use verify::{verify_hmac, verify_hmac_from_headers, verify_oauth_redirect_hmac};
 
 pub enum WebhookTopic {
     CustomersDataRequest,

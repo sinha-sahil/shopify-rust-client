@@ -64,6 +64,19 @@ pub enum VerificationError {
     InvalidHmac,
 }
 
+#[derive(Debug, Clone)]
+pub struct OAuthRedirectParams {
+    pub hmac: String,
+    pub embedded: String,
+    pub host: String,
+    pub locale: String,
+    pub session: String,
+    pub shop: String,
+    pub timestamp: String,
+    pub id_token: Option<String>,
+    pub app_load_id: Option<String>,
+}
+
 impl std::fmt::Display for VerificationError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {

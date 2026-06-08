@@ -2,7 +2,7 @@ use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
 use hmac::{Hmac, Mac};
 use sha2::Sha256;
 
-use super::types::VerificationError;
+use super::types::{OAuthRedirectParams, VerificationError};
 
 type HmacSha256 = Hmac<Sha256>;
 
@@ -34,6 +34,36 @@ pub fn verify_hmac_from_headers(
         .ok_or(VerificationError::MissingHmacHeader)?;
 
     verify_hmac(hmac_header, raw_body, client_secret)
+}
+
+pub fn verify_oauth_redirect_hmac(
+    params: &OAuthRedirectParams,
+    client_secret: &str,
+) -> Result<(), VerificationError> {
+    let mut pairs: Vec<(&str, &str)> = vec![
+        ("embedded", &params.embedded),
+        ("host", &params.host),
+        ("locale", &params.locale),
+        ("session", &params.session),
+        ("shop", &params.shop),
+        ("timestamp", &params.timestamp),
+    ];
+    if let Some(v) = &params.id_token {
+        pairs.push(("id_token", v));
+    }
+    if let Some(v) = &params.app_load_id {
+        pairs.push(("app_load_id", v));
+    }
+    pairs.sort_by_key(|(k, _)| *k);
+
+    let message = pairs
+        .iter()
+        .map(|(k, v)| format!("{k}={v}"))
+        .collect::<Vec<_>>()
+        .join("&");
+
+    let digest = hex::decode(&params.hmac).map_err(|_| VerificationError::InvalidHmac)?;
+    verify_hmac(&BASE64.encode(digest), message.as_bytes(), client_secret)
 }
 
 #[cfg(test)]
@@ -134,6 +164,53 @@ mod tests {
         let wrong_verification = verify_hmac(&hmac, b"different_body", client_secret);
         assert!(matches!(
             wrong_verification,
+            Err(VerificationError::InvalidHmac)
+        ));
+    }
+
+    fn sample_params(hmac: String) -> OAuthRedirectParams {
+        OAuthRedirectParams {
+            hmac,
+            embedded: "1".to_string(),
+            host: "ZXhhbXBsZS5teXNob3BpZnkuY29t".to_string(),
+            locale: "en".to_string(),
+            session: "abc123".to_string(),
+            shop: "example.myshopify.com".to_string(),
+            timestamp: "1700000000".to_string(),
+            id_token: None,
+            app_load_id: None,
+        }
+    }
+
+    #[test]
+    fn test_verify_oauth_redirect_hmac_valid() {
+        let client_secret = "test_secret";
+        let message = "embedded=1&host=ZXhhbXBsZS5teXNob3BpZnkuY29t&locale=en&session=abc123&shop=example.myshopify.com&timestamp=1700000000";
+
+        let mut mac = HmacSha256::new_from_slice(client_secret.as_bytes()).unwrap();
+        mac.update(message.as_bytes());
+        let hmac_hex = hex::encode(mac.finalize().into_bytes());
+
+        let params = sample_params(hmac_hex);
+        assert!(verify_oauth_redirect_hmac(&params, client_secret).is_ok());
+    }
+
+    #[test]
+    fn test_verify_oauth_redirect_hmac_invalid() {
+        let client_secret = "test_secret";
+        let params = sample_params(hex::encode([0u8; 32]));
+        assert!(matches!(
+            verify_oauth_redirect_hmac(&params, client_secret),
+            Err(VerificationError::InvalidHmac)
+        ));
+    }
+
+    #[test]
+    fn test_verify_oauth_redirect_hmac_non_hex() {
+        let client_secret = "test_secret";
+        let params = sample_params("not-hex!!".to_string());
+        assert!(matches!(
+            verify_oauth_redirect_hmac(&params, client_secret),
             Err(VerificationError::InvalidHmac)
         ));
     }
