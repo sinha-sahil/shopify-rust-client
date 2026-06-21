@@ -141,9 +141,17 @@ pub async fn list_discounts(
                     }
                     discount {
                         __typename
+
+                        # App-based automatic discounts (Shopify Functions)
                         ... on DiscountAutomaticApp {
                             title
                             status
+                            combinesWith {
+                                orderDiscounts
+                                productDiscounts
+                                shippingDiscounts
+                            }
+                            asyncUsageCount
                             appDiscountType {
                                 appKey
                                 functionId
@@ -151,9 +159,23 @@ pub async fn list_discounts(
                                 description
                             }
                         }
+
+                        # App-based code discounts (Shopify Functions)
                         ... on DiscountCodeApp {
                             title
                             status
+                            combinesWith {
+                                orderDiscounts
+                                productDiscounts
+                                shippingDiscounts
+                            }
+                            appliesOncePerCustomer
+                            asyncUsageCount
+                            codes(first: 5) {
+                                nodes {
+                                    code
+                                }
+                            }
                             appDiscountType {
                                 appKey
                                 functionId
@@ -161,25 +183,477 @@ pub async fn list_discounts(
                                 description
                             }
                         }
+
+                        # First-party basic automatic discounts (amount/percent off, no code)
                         ... on DiscountAutomaticBasic {
                             title
                             status
+                            summary
+                            combinesWith {
+                                orderDiscounts
+                                productDiscounts
+                                shippingDiscounts
+                            }
+                            asyncUsageCount
+                            context {
+                                ... on DiscountBuyerSelectionAll {
+                                    __typename
+                                }
+                                ... on DiscountCustomers {
+                                    customers {
+                                        id
+                                    }
+                                }
+                                ... on DiscountCustomerSegments {
+                                    segments {
+                                        id
+                                    }
+                                }
+                            }
+                            minimumRequirement {
+                                ... on DiscountMinimumQuantity {
+                                    greaterThanOrEqualToQuantity
+                                }
+                                ... on DiscountMinimumSubtotal {
+                                    greaterThanOrEqualToSubtotal {
+                                        amount
+                                        currencyCode
+                                    }
+                                }
+                            }
+                            customerGets {
+                                value {
+                                    ... on DiscountAmount {
+                                        amount {
+                                            amount
+                                            currencyCode
+                                        }
+                                    }
+                                    ... on DiscountPercentage {
+                                        percentage
+                                    }
+                                    ... on DiscountOnQuantity {
+                                        quantity {
+                                            quantity
+                                        }
+                                        effect {
+                                            ... on DiscountPercentage {
+                                                percentage
+                                            }
+                                            ... on DiscountAmount {
+                                                amount {
+                                                    amount
+                                                    currencyCode
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                items {
+                                    ... on DiscountProducts {
+                                        products(first: 50) {
+                                            nodes {
+                                                id
+                                            }
+                                        }
+                                    }
+                                    ... on DiscountCollections {
+                                        collections(first: 50) {
+                                            nodes {
+                                                id
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
+
+                        # First-party basic code discounts (amount/percent off with code)
                         ... on DiscountCodeBasic {
                             title
                             status
+                            summary
+                            combinesWith {
+                                orderDiscounts
+                                productDiscounts
+                                shippingDiscounts
+                            }
+                            recurringCycleLimit
+                            appliesOncePerCustomer
+                            usageLimit
+                            asyncUsageCount
+                            codes(first: 5) {
+                                nodes {
+                                    code
+                                }
+                            }
+                            context {
+                                ... on DiscountBuyerSelectionAll {
+                                    __typename
+                                }
+                                ... on DiscountCustomers {
+                                    customers {
+                                        id
+                                    }
+                                }
+                                ... on DiscountCustomerSegments {
+                                    segments {
+                                        id
+                                    }
+                                }
+                            }
+                            minimumRequirement {
+                                ... on DiscountMinimumQuantity {
+                                    greaterThanOrEqualToQuantity
+                                }
+                                ... on DiscountMinimumSubtotal {
+                                    greaterThanOrEqualToSubtotal {
+                                        amount
+                                        currencyCode
+                                    }
+                                }
+                            }
+                            customerGets {
+                                value {
+                                    ... on DiscountAmount {
+                                        amount {
+                                            amount
+                                            currencyCode
+                                        }
+                                    }
+                                    ... on DiscountPercentage {
+                                        percentage
+                                    }
+                                    ... on DiscountOnQuantity {
+                                        quantity {
+                                            quantity
+                                        }
+                                        effect {
+                                            ... on DiscountPercentage {
+                                                percentage
+                                            }
+                                            ... on DiscountAmount {
+                                                amount {
+                                                    amount
+                                                    currencyCode
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                items {
+                                    ... on DiscountProducts {
+                                        products(first: 50) {
+                                            nodes {
+                                                id
+                                            }
+                                        }
+                                    }
+                                    ... on DiscountCollections {
+                                        collections(first: 50) {
+                                            nodes {
+                                                id
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
+
+                        # Automatic BXGY discounts (no code)
                         ... on DiscountAutomaticBxgy {
                             title
                             status
+                            summary
+                            combinesWith {
+                                orderDiscounts
+                                productDiscounts
+                                shippingDiscounts
+                            }
+                            asyncUsageCount
+                            usesPerOrderLimit
+                            context {
+                                ... on DiscountBuyerSelectionAll {
+                                    __typename
+                                }
+                                ... on DiscountCustomers {
+                                    customers {
+                                        id
+                                    }
+                                }
+                                ... on DiscountCustomerSegments {
+                                    segments {
+                                        id
+                                    }
+                                }
+                            }
+                            customerBuys {
+                                value {
+                                    ... on DiscountQuantity {
+                                        quantity
+                                    }
+                                    ... on DiscountPurchaseAmount {
+                                        amount
+                                    }
+                                }
+                                items {
+                                    ... on DiscountProducts {
+                                        products(first: 50) {
+                                            nodes {
+                                                id
+                                            }
+                                        }
+                                    }
+                                    ... on DiscountCollections {
+                                        collections(first: 50) {
+                                            nodes {
+                                                id
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            customerGets {
+                                value {
+                                    ... on DiscountPercentage {
+                                        percentage
+                                    }
+                                    ... on DiscountAmount {
+                                        amount {
+                                            amount
+                                            currencyCode
+                                        }
+                                    }
+                                    ... on DiscountOnQuantity {
+                                        quantity {
+                                            quantity
+                                        }
+                                        effect {
+                                            ... on DiscountPercentage {
+                                                percentage
+                                            }
+                                            ... on DiscountAmount {
+                                                amount {
+                                                    amount
+                                                    currencyCode
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                items {
+                                    ... on DiscountProducts {
+                                        products(first: 50) {
+                                            nodes {
+                                                id
+                                            }
+                                        }
+                                    }
+                                    ... on DiscountCollections {
+                                        collections(first: 50) {
+                                            nodes {
+                                                id
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
+
+                        # Code-based BXGY discounts
                         ... on DiscountCodeBxgy {
                             title
                             status
+                            summary
+                            combinesWith {
+                                orderDiscounts
+                                productDiscounts
+                                shippingDiscounts
+                            }
+                            appliesOncePerCustomer
+                            usageLimit
+                            asyncUsageCount
+                            codes(first: 5) {
+                                nodes {
+                                    code
+                                }
+                            }
+                            context {
+                                ... on DiscountBuyerSelectionAll {
+                                    __typename
+                                }
+                                ... on DiscountCustomers {
+                                    customers {
+                                        id
+                                    }
+                                }
+                                ... on DiscountCustomerSegments {
+                                    segments {
+                                        id
+                                    }
+                                }
+                            }
+                            customerBuys {
+                                value {
+                                    ... on DiscountQuantity {
+                                        quantity
+                                    }
+                                    ... on DiscountPurchaseAmount {
+                                        amount
+                                    }
+                                }
+                                items {
+                                    ... on DiscountProducts {
+                                        products(first: 50) {
+                                            nodes {
+                                                id
+                                            }
+                                        }
+                                    }
+                                    ... on DiscountCollections {
+                                        collections(first: 50) {
+                                            nodes {
+                                                id
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            customerGets {
+                                value {
+                                    ... on DiscountPercentage {
+                                        percentage
+                                    }
+                                    ... on DiscountAmount {
+                                        amount {
+                                            amount
+                                            currencyCode
+                                        }
+                                    }
+                                    ... on DiscountOnQuantity {
+                                        quantity {
+                                            quantity
+                                        }
+                                        effect {
+                                            ... on DiscountPercentage {
+                                                percentage
+                                            }
+                                            ... on DiscountAmount {
+                                                amount {
+                                                    amount
+                                                    currencyCode
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                items {
+                                    ... on DiscountProducts {
+                                        products(first: 50) {
+                                            nodes {
+                                                id
+                                            }
+                                        }
+                                    }
+                                    ... on DiscountCollections {
+                                        collections(first: 50) {
+                                            nodes {
+                                                id
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
+
+                        # Automatic free-shipping discounts
+                        ... on DiscountAutomaticFreeShipping {
+                            title
+                            status
+                            summary
+                            combinesWith {
+                                orderDiscounts
+                                productDiscounts
+                                shippingDiscounts
+                            }
+                            asyncUsageCount
+                            maximumShippingPrice {
+                                amount
+                                currencyCode
+                            }
+                            context {
+                                ... on DiscountBuyerSelectionAll {
+                                    __typename
+                                }
+                                ... on DiscountCustomers {
+                                    customers {
+                                        id
+                                    }
+                                }
+                                ... on DiscountCustomerSegments {
+                                    segments {
+                                        id
+                                    }
+                                }
+                            }
+                            minimumRequirement {
+                                ... on DiscountMinimumQuantity {
+                                    greaterThanOrEqualToQuantity
+                                }
+                                ... on DiscountMinimumSubtotal {
+                                    greaterThanOrEqualToSubtotal {
+                                        amount
+                                        currencyCode
+                                    }
+                                }
+                            }
+                        }
+
+                        # Code-based free-shipping discounts
                         ... on DiscountCodeFreeShipping {
                             title
                             status
+                            summary
+                            combinesWith {
+                                orderDiscounts
+                                productDiscounts
+                                shippingDiscounts
+                            }
+                            recurringCycleLimit
+                            appliesOncePerCustomer
+                            usageLimit
+                            asyncUsageCount
+                            codes(first: 5) {
+                                nodes {
+                                    code
+                                }
+                            }
+                            context {
+                                ... on DiscountBuyerSelectionAll {
+                                    __typename
+                                }
+                                ... on DiscountCustomers {
+                                    customers {
+                                        id
+                                    }
+                                }
+                                ... on DiscountCustomerSegments {
+                                    segments {
+                                        id
+                                    }
+                                }
+                            }
+                            minimumRequirement {
+                                ... on DiscountMinimumQuantity {
+                                    greaterThanOrEqualToQuantity
+                                }
+                                ... on DiscountMinimumSubtotal {
+                                    greaterThanOrEqualToSubtotal {
+                                        amount
+                                        currencyCode
+                                    }
+                                }
+                            }
                         }
                     }
                 }

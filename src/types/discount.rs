@@ -51,6 +51,8 @@ pub enum DiscountType {
 pub struct DiscountAutomaticAppDetails {
     pub title: String,
     pub status: String,
+    pub combines_with: Option<DiscountCombinesWith>,
+    pub async_usage_count: Option<i32>,
     pub app_discount_type: AppDiscountType,
 }
 
@@ -59,25 +61,62 @@ pub struct DiscountAutomaticAppDetails {
 pub struct DiscountCodeAppDetails {
     pub title: String,
     pub status: String,
+    pub combines_with: Option<DiscountCombinesWith>,
+    pub applies_once_per_customer: Option<bool>,
+    pub async_usage_count: Option<i32>,
+    pub codes: Option<DiscountCodesConnection>,
     pub app_discount_type: AppDiscountType,
 }
 
 #[derive(serde::Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct DiscountBasicDetails {
     pub title: String,
     pub status: String,
+    pub summary: Option<String>,
+    pub combines_with: Option<DiscountCombinesWith>,
+    pub async_usage_count: Option<i32>,
+    pub recurring_cycle_limit: Option<i32>,
+    pub applies_once_per_customer: Option<bool>,
+    pub usage_limit: Option<i32>,
+    pub codes: Option<DiscountCodesConnection>,
+    pub context: Option<DiscountContext>,
+    pub minimum_requirement: Option<DiscountMinimumRequirement>,
+    pub customer_gets: Option<DiscountCustomerGets>,
 }
 
 #[derive(serde::Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct DiscountBxgyDetails {
     pub title: String,
     pub status: String,
+    pub summary: Option<String>,
+    pub combines_with: Option<DiscountCombinesWith>,
+    pub async_usage_count: Option<i32>,
+    pub uses_per_order_limit: Option<i32>,
+    pub applies_once_per_customer: Option<bool>,
+    pub usage_limit: Option<i32>,
+    pub codes: Option<DiscountCodesConnection>,
+    pub context: Option<DiscountContext>,
+    pub customer_buys: Option<DiscountCustomerBuys>,
+    pub customer_gets: Option<DiscountCustomerGets>,
 }
 
 #[derive(serde::Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct DiscountFreeShippingDetails {
     pub title: String,
     pub status: String,
+    pub summary: Option<String>,
+    pub combines_with: Option<DiscountCombinesWith>,
+    pub async_usage_count: Option<i32>,
+    pub recurring_cycle_limit: Option<i32>,
+    pub applies_once_per_customer: Option<bool>,
+    pub usage_limit: Option<i32>,
+    pub codes: Option<DiscountCodesConnection>,
+    pub maximum_shipping_price: Option<Money>,
+    pub context: Option<DiscountContext>,
+    pub minimum_requirement: Option<DiscountMinimumRequirement>,
 }
 
 #[derive(serde::Deserialize, Debug)]
@@ -124,6 +163,182 @@ pub struct DiscountCombinesWith {
     pub order_discounts: bool,
     pub product_discounts: bool,
     pub shipping_discounts: bool,
+}
+
+#[derive(serde::Deserialize, Debug)]
+pub struct DiscountCodesConnection {
+    pub nodes: Vec<DiscountCode>,
+}
+
+#[derive(serde::Deserialize, Debug)]
+pub struct DiscountCode {
+    pub code: String,
+}
+
+#[derive(serde::Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct Money {
+    pub amount: String,
+    pub currency_code: String,
+}
+
+#[derive(serde::Deserialize, Debug, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct DiscountContext {
+    #[serde(rename = "__typename", default)]
+    pub buyer_selection_typename: Option<String>,
+    #[serde(default)]
+    pub customers: Option<Vec<DiscountCustomer>>,
+    #[serde(default)]
+    pub segments: Option<Vec<DiscountCustomerSegment>>,
+}
+
+#[derive(serde::Deserialize, Debug)]
+pub struct DiscountCustomer {
+    pub id: String,
+}
+
+#[derive(serde::Deserialize, Debug)]
+pub struct DiscountCustomerSegment {
+    pub id: String,
+}
+
+#[derive(serde::Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct DiscountMinimumRequirement {
+    #[serde(default)]
+    pub greater_than_or_equal_to_quantity: Option<String>,
+    #[serde(default)]
+    pub greater_than_or_equal_to_subtotal: Option<Money>,
+}
+
+#[derive(serde::Deserialize, Debug)]
+pub struct DiscountCustomerGets {
+    pub value: DiscountValue,
+    pub items: Option<DiscountItems>,
+}
+
+#[derive(serde::Deserialize, Debug)]
+pub struct DiscountCustomerBuys {
+    pub value: DiscountCustomerBuysValue,
+    pub items: Option<DiscountItems>,
+}
+
+#[derive(Debug)]
+pub enum DiscountValue {
+    DiscountAmount(DiscountAmountValue),
+    DiscountPercentage(DiscountPercentageValue),
+    DiscountOnQuantity(DiscountOnQuantityValue),
+}
+
+impl<'de> serde::Deserialize<'de> for DiscountValue {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let value = serde_json::Value::deserialize(deserializer)?;
+        if value.get("percentage").is_some() {
+            serde_json::from_value(value)
+                .map(DiscountValue::DiscountPercentage)
+                .map_err(serde::de::Error::custom)
+        } else if value.get("amount").is_some() {
+            serde_json::from_value(value)
+                .map(DiscountValue::DiscountAmount)
+                .map_err(serde::de::Error::custom)
+        } else if value.get("quantity").is_some() {
+            serde_json::from_value(value)
+                .map(DiscountValue::DiscountOnQuantity)
+                .map_err(serde::de::Error::custom)
+        } else {
+            Err(serde::de::Error::custom(
+                "DiscountValue: expected one of `amount`, `percentage`, or `quantity`",
+            ))
+        }
+    }
+}
+
+#[derive(serde::Deserialize, Debug)]
+pub struct DiscountAmountValue {
+    pub amount: Money,
+}
+
+#[derive(serde::Deserialize, Debug)]
+pub struct DiscountPercentageValue {
+    pub percentage: f64,
+}
+
+#[derive(serde::Deserialize, Debug)]
+pub struct DiscountOnQuantityValue {
+    pub quantity: DiscountOnQuantityQuantity,
+    pub effect: Option<DiscountEffect>,
+}
+
+#[derive(Debug)]
+pub enum DiscountEffect {
+    DiscountPercentage(DiscountPercentageValue),
+    DiscountAmount(DiscountAmountValue),
+}
+
+impl<'de> serde::Deserialize<'de> for DiscountEffect {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let value = serde_json::Value::deserialize(deserializer)?;
+        if value.get("percentage").is_some() {
+            serde_json::from_value(value)
+                .map(DiscountEffect::DiscountPercentage)
+                .map_err(serde::de::Error::custom)
+        } else if value.get("amount").is_some() {
+            serde_json::from_value(value)
+                .map(DiscountEffect::DiscountAmount)
+                .map_err(serde::de::Error::custom)
+        } else {
+            Err(serde::de::Error::custom(
+                "DiscountEffect: expected `percentage` or `amount`",
+            ))
+        }
+    }
+}
+
+#[derive(serde::Deserialize, Debug)]
+pub struct DiscountOnQuantityQuantity {
+    pub quantity: String,
+}
+
+#[derive(serde::Deserialize, Debug)]
+#[serde(untagged)]
+pub enum DiscountCustomerBuysValue {
+    DiscountQuantity(DiscountCustomerBuysQuantityValue),
+    DiscountPurchaseAmount(DiscountPurchaseAmountValue),
+}
+
+#[derive(serde::Deserialize, Debug)]
+pub struct DiscountCustomerBuysQuantityValue {
+    pub quantity: String,
+}
+
+#[derive(serde::Deserialize, Debug)]
+pub struct DiscountPurchaseAmountValue {
+    pub amount: String,
+}
+
+#[derive(serde::Deserialize, Debug, Default)]
+pub struct DiscountItems {
+    #[serde(default)]
+    pub products: Option<DiscountItemsConnection>,
+    #[serde(default)]
+    pub collections: Option<DiscountItemsConnection>,
+}
+
+#[derive(serde::Deserialize, Debug)]
+pub struct DiscountItemsConnection {
+    pub nodes: Vec<DiscountItem>,
+}
+
+#[derive(serde::Deserialize, Debug)]
+pub struct DiscountItem {
+    pub id: String,
 }
 
 #[derive(serde::Deserialize, Debug)]
