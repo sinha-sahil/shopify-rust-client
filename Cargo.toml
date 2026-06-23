@@ -1,6 +1,6 @@
 [package]
 name = "shopify-client"
-version = "1.1.0"
+version = "1.2.0"
 edition = "2021"
 rust-version = "1.70"
 description = "Type-safe, async Rust client for the Shopify Admin and Storefront APIs"
