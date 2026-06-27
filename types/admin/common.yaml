@@ -1,0 +1,30 @@
+# Shared admin types. Non-top file - must use full paths for all references.
+
+Common:
+  PageInfo:
+    type: object
+    description: 'Pagination metadata for a connection'
+    required:
+      - hasNextPage
+    properties:
+      hasNextPage:
+        type: boolean
+      hasPreviousPage:
+        type: boolean
+      startCursor:
+        type: string
+      endCursor:
+        type: string
+
+  UserError:
+    type: object
+    description: 'An error returned from a GraphQL mutation'
+    required:
+      - message
+    properties:
+      field:
+        type: array
+        items:
+          type: string
+      message:
+        type: string

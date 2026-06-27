@@ -1,0 +1,86 @@
+# Theme types for Shopify Admin API.
+# Non-top file - must use full paths for all references.
+
+Theme:
+  Theme:
+    type: object
+    description: 'A storefront theme'
+    required:
+      - id
+      - name
+      - role
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      role:
+        type: string
+        description: 'ThemeRole on the wire: MAIN (live), UNPUBLISHED (preview/draft), DEVELOPMENT, DEMO'
+      processing:
+        type: boolean
+      createdAt:
+        type: string
+      updatedAt:
+        type: string
+
+  ThemeEdge:
+    type: object
+    required:
+      - node
+    properties:
+      node:
+        $ref: './types/admin/theme.yaml#/Theme/Theme'
+
+  ThemeConnection:
+    type: object
+    required:
+      - edges
+      - pageInfo
+    properties:
+      edges:
+        type: array
+        items:
+          $ref: './types/admin/theme.yaml#/Theme/ThemeEdge'
+      pageInfo:
+        $ref: './types/admin/common.yaml#/Common/PageInfo'
+
+  ListThemesResp:
+    type: object
+    required:
+      - themes
+    properties:
+      themes:
+        $ref: './types/admin/theme.yaml#/Theme/ThemeConnection'
+
+  ThemeDuplicatePayload:
+    type: object
+    required:
+      - userErrors
+    properties:
+      newTheme:
+        $ref: './types/admin/theme.yaml#/Theme/Theme'
+      userErrors:
+        type: array
+        items:
+          $ref: './types/admin/common.yaml#/Common/UserError'
+
+  ThemeDuplicateResp:
+    type: object
+    required:
+      - themeDuplicate
+    properties:
+      themeDuplicate:
+        $ref: './types/admin/theme.yaml#/Theme/ThemeDuplicatePayload'
+
+  CreatePreviewThemeInput:
+    type: object
+    description: 'Input for creating a preview (unpublished) theme by duplicating an existing one'
+    customAttributes:
+      x-derive: Default
+    properties:
+      sourceThemeId:
+        type: string
+        description: 'Theme to duplicate; when omitted the live (MAIN) theme is used'
+      name:
+        type: string

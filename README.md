@@ -30,7 +30,7 @@ let product = store.product.get_by_handle("my-product").await?;
 | | |
 |---|---|
 | **Two clients, one crate** | `ShopifyClient` for the Admin API, `ShopifyStorefront` for the Storefront API — each with its own token, endpoint, and surface. Storefront lives behind a Cargo feature so admin-only apps pay nothing for it. |
-| **9 admin service modules** | Orders, Subscriptions, Discounts, Cart Transforms, App Installation, Shopify Functions, Shop, Storefront Tokens, Bulk Operations |
+| **10 admin service modules** | Orders, Subscriptions, Discounts, Cart Transforms, App Installation, Shopify Functions, Shop, Storefront Tokens, Bulk Operations, Themes |
 | **8 storefront service modules** | Products, Collections, Cart, Customer, Search, Content (pages/blogs/articles/menus), Shop, Metaobjects |
 | **Bulk operations** | Prebuilt export templates for products, orders, collections, customers, inventory, and draft orders with typed JSONL parsing |
 | **Typed everything** | Strongly typed requests, responses, filters, JSONL export lines, GraphQL inputs — no raw strings |
@@ -104,6 +104,7 @@ async fn main() {
 | **`client.shop`** | GraphQL | `get`, `get_status` |
 | **`client.storefront_access_token`** | GraphQL | `list`, `create`, `delete` |
 | **`client.bulk_operation`** | GraphQL | `run_query`, `run_mutation`, `cancel`, `get`, `list`, `create_staged_upload`, `export_*`, `stream_*` |
+| **`client.theme`** | GraphQL | `list`, `get_live`, `create_preview` |
 
 Admin services live under `shopify_client::admin::*` (also re-exported as `shopify_client::services::*` for back-compat with pre-0.19 releases). Request/response types live under `shopify_client::types::*`.
 

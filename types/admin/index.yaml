@@ -1,0 +1,10 @@
+info:
+  version: '1.0.0'
+  title: 'Shopify Admin API Types'
+
+groupedTypes:
+  Common:
+    $ref: './types/admin/common.yaml#/Common'
+
+  Theme:
+    $ref: './types/admin/theme.yaml#/Theme'
