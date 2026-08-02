@@ -6,10 +6,10 @@ use serde_json::json;
 use super::queries;
 use crate::common::http::execute_storefront_graphql as execute_graphql;
 use crate::storefront::generated::types::products::{
-    GetProductRecommendationsArgs, GetProductsArgs,
+    GetProductRecommendationsArgs, GetProductVariantsArgs, GetProductsArgs,
 };
 use crate::storefront::generated::types::responses::{
-    ProductRecommendationsResponse, ProductResponse, ProductsResponse,
+    ProductRecommendationsResponse, ProductResponse, ProductVariantsResponse, ProductsResponse,
 };
 
 pub async fn get_by_id(ctx: &ServiceContext, id: &str) -> Result<ProductResponse, APIError> {
@@ -42,4 +42,12 @@ pub async fn get_recommendations(
 ) -> Result<ProductRecommendationsResponse, APIError> {
     let variables = serde_json::to_value(&args).unwrap_or(json!({}));
     execute_graphql(ctx, queries::get_product_recommendations(), variables).await
+}
+
+pub async fn get_variants_by_ids(
+    ctx: &ServiceContext,
+    args: GetProductVariantsArgs,
+) -> Result<ProductVariantsResponse, APIError> {
+    let variables = serde_json::to_value(&args).unwrap_or(json!({}));
+    execute_graphql(ctx, queries::get_product_variants(), variables).await
 }

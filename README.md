@@ -441,7 +441,7 @@ async fn main() {
 
 | Service | Field on `ShopifyStorefront` | Operations |
 |---------|------------------------------|------------|
-| **`store.product`** | Products | `get_by_id`, `get_by_handle`, `get_many`, `get_recommendations` |
+| **`store.product`** | Products | `get_by_id`, `get_by_handle`, `get_many`, `get_recommendations`, `get_variants_by_ids` |
 | **`store.collection`** | Collections | `get_by_id`, `get_by_handle`, `get_with_products`, `get_many` |
 | **`store.cart`** | Cart | `get`, `create`, `add_lines`, `update_lines`, `remove_lines`, `update_note`, `update_attributes`, `update_buyer_identity`, `update_discount_codes`, `add_gift_card_codes` (plus `*_without_customer` variants) |
 | **`store.customer`** | Customers | `get`, `login`, `renew_token`, `logout`, `create`, `update`, `recover`, `reset`, `reset_by_url`, `activate`, `activate_by_url`, `create_address`, `update_address`, `delete_address`, `set_default_address` |
@@ -459,7 +459,8 @@ All Storefront types — products, carts, customers, response wrappers, input ty
 ```rust
 use shopify_client::storefront::ShopifyStorefront;
 use shopify_client::storefront::generated::types::products::{
-    GetProductsArgs, GetProductRecommendationsArgs, ProductSortKeys, ProductRecommendationIntent,
+    GetProductsArgs, GetProductRecommendationsArgs, GetProductVariantsArgs, ProductSortKeys,
+    ProductRecommendationIntent,
 };
 
 let store = ShopifyStorefront::new(shop_url, storefront_token, None);
@@ -498,6 +499,19 @@ let resp = store.product.get_recommendations(GetProductRecommendationsArgs {
     product_id: "gid://shopify/Product/123456".to_string(),
     intent: Some(ProductRecommendationIntent::Related),
 }).await?;
+
+let resp = store.product.get_variants_by_ids(GetProductVariantsArgs {
+    ids: vec![
+        "gid://shopify/ProductVariant/111".to_string(),
+        "gid://shopify/ProductVariant/222".to_string(),
+    ],
+}).await?;
+
+for node in resp.nodes {
+    if let Some(variant) = node {
+        println!("{} — available: {}", variant.title, variant.available_for_sale);
+    }
+}
 ```
 
 ### Collections

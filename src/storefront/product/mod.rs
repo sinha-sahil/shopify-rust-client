@@ -7,10 +7,10 @@ use std::sync::Arc;
 
 use crate::common::types::{APIError, RequestCallbacks};
 use crate::storefront::generated::types::products::{
-    GetProductRecommendationsArgs, GetProductsArgs,
+    GetProductRecommendationsArgs, GetProductVariantsArgs, GetProductsArgs,
 };
 use crate::storefront::generated::types::responses::{
-    ProductRecommendationsResponse, ProductResponse, ProductsResponse,
+    ProductRecommendationsResponse, ProductResponse, ProductVariantsResponse, ProductsResponse,
 };
 
 pub struct Product {
@@ -55,5 +55,12 @@ impl Product {
         args: GetProductRecommendationsArgs,
     ) -> Result<ProductRecommendationsResponse, APIError> {
         remote::get_recommendations(&self.ctx, args).await
+    }
+
+    pub async fn get_variants_by_ids(
+        &self,
+        args: GetProductVariantsArgs,
+    ) -> Result<ProductVariantsResponse, APIError> {
+        remote::get_variants_by_ids(&self.ctx, args).await
     }
 }
