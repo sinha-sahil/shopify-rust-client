@@ -146,12 +146,27 @@ pub async fn list_discounts(
                         ... on DiscountAutomaticApp {
                             title
                             status
+                            discountId
+                            startsAt
+                            endsAt
+                            createdAt
+                            updatedAt
                             combinesWith {
                                 orderDiscounts
                                 productDiscounts
                                 shippingDiscounts
                             }
+                            discountClasses
                             asyncUsageCount
+                            appliesOnOneTimePurchase
+                            appliesOnSubscription
+                            recurringCycleLimit
+                            errorHistory {
+                                errorsFirstOccurredAt
+                                firstOccurredAt
+                                hasBeenSharedSinceLastError
+                                hasSharedRecentErrors
+                            }
                             appDiscountType {
                                 appKey
                                 functionId
@@ -709,6 +724,27 @@ pub async fn get_discount_by_id(
                     ... on DiscountAutomaticApp {
                         title
                         status
+                        discountId
+                        startsAt
+                        endsAt
+                        createdAt
+                        updatedAt
+                        combinesWith {
+                            orderDiscounts
+                            productDiscounts
+                            shippingDiscounts
+                        }
+                        discountClasses
+                        asyncUsageCount
+                        appliesOnOneTimePurchase
+                        appliesOnSubscription
+                        recurringCycleLimit
+                        errorHistory {
+                            errorsFirstOccurredAt
+                            firstOccurredAt
+                            hasBeenSharedSinceLastError
+                            hasSharedRecentErrors
+                        }
                         appDiscountType {
                             appKey
                             functionId
