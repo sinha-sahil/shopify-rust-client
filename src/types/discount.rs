@@ -51,8 +51,18 @@ pub enum DiscountType {
 pub struct DiscountAutomaticAppDetails {
     pub title: String,
     pub status: String,
+    pub discount_id: Option<String>,
+    pub starts_at: Option<String>,
+    pub ends_at: Option<String>,
+    pub created_at: Option<String>,
+    pub updated_at: Option<String>,
     pub combines_with: Option<DiscountCombinesWith>,
+    pub discount_classes: Option<Vec<DiscountClass>>,
     pub async_usage_count: Option<i32>,
+    pub applies_on_one_time_purchase: Option<bool>,
+    pub applies_on_subscription: Option<bool>,
+    pub recurring_cycle_limit: Option<i32>,
+    pub error_history: Option<FunctionsErrorHistory>,
     pub app_discount_type: AppDiscountType,
 }
 
@@ -342,6 +352,15 @@ pub struct DiscountItem {
 }
 
 #[derive(serde::Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct FunctionsErrorHistory {
+    pub errors_first_occurred_at: String,
+    pub first_occurred_at: String,
+    pub has_been_shared_since_last_error: bool,
+    pub has_shared_recent_errors: bool,
+}
+
+#[derive(serde::Deserialize, Debug)]
 pub struct DiscountUserError {
     pub field: Option<Vec<String>>,
     pub message: String,
@@ -465,7 +484,7 @@ pub struct DiscountCombinesWithInput {
     pub shipping_discounts: Option<bool>,
 }
 
-#[derive(serde::Serialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum DiscountClass {
     Product,
