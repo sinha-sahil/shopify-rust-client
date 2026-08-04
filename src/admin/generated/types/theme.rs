@@ -1,6 +1,6 @@
-use serde::{Serialize, Deserialize};
 use super::common::PageInfo;
 use super::common::UserError;
+use serde::{Deserialize, Serialize};
 
 /// A storefront theme
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -61,5 +61,3 @@ pub struct CreatePreviewThemeInput {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
 }
-
-
