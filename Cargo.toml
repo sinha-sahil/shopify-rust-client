@@ -24,6 +24,9 @@ base64 = "0.22"
 hex = "0.4"
 time = { version = "0.3", features = ["formatting", "parsing", "serde-human-readable"], optional = true }
 
+[dev-dependencies]
+cargo-husky = { version = "1", features = ["user-hooks"] }
+
 [features]
 default = []
 storefront = ["dep:time"]

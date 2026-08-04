@@ -1,4 +1,4 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 /// Pagination metadata for a connection
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -23,5 +23,3 @@ pub struct UserError {
     pub field: Option<Vec<String>>,
     pub message: String,
 }
-
-
