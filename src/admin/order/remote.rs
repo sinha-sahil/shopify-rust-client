@@ -1,9 +1,19 @@
 use reqwest::header::{HeaderMap, HeaderValue, CONTENT_TYPE};
+use std::collections::HashMap;
 
 use crate::{
-    common::{http::http_client, types::APIError, utils::parse_response_from_text, ServiceContext},
-    types::order::{GetOrderResp, OrderQueryResp, PatchOrderRequest},
+    common::{
+        http::{execute_graphql, http_client},
+        types::APIError,
+        utils::parse_response_from_text,
+        ServiceContext,
+    },
+    types::order::{
+        GetOrderResp, LineItemVariantDetail, OrderLineItemsVariantResponse, OrderQueryResp,
+        PatchOrderRequest,
+    },
 };
+use serde_json::json;
 
 pub async fn patch_order(
     ctx: &ServiceContext,
@@ -156,4 +166,116 @@ pub async fn get_order_with_id(
             Err(APIError::NetworkError)
         }
     }
+}
+
+/// Fetch line-item variant details (selected options and media) for an order.
+///
+/// Queries order line items with variant information including selected options
+/// and image media. LineItem has no `legacyResourceId` field — the numeric suffix
+/// of its GID (`gid://shopify/LineItem/<numeric>`) is the join key that matches
+/// the REST order payload's line-item id.
+///
+/// Returns a map keyed by the numeric line-item id extracted from the GID.
+pub async fn get_order_line_items_variant(
+    ctx: &ServiceContext,
+    order_id: &str,
+) -> Result<HashMap<String, LineItemVariantDetail>, APIError> {
+    let query = r#"
+        query OrderLineItemsVariantMedia($id: ID!) {
+            order(id: $id) {
+                id
+                lineItems(first: 50) {
+                    edges {
+                        node {
+                            id
+                            variant {
+                                id
+                                selectedOptions {
+                                    name
+                                    value
+                                }
+                                media(first: 1) {
+                                    edges {
+                                        node {
+                                            __typename
+                                            ... on MediaImage {
+                                                image {
+                                                    url
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                product {
+                                    featuredMedia {
+                                        __typename
+                                        ... on MediaImage {
+                                            image {
+                                                url
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    "#;
+
+    let variables = json!({
+        "id": order_id
+    });
+
+    let response: OrderLineItemsVariantResponse = execute_graphql(ctx, query, variables).await?;
+
+    let mut result = HashMap::new();
+
+    if let Some(order) = response.order {
+        for edge in order.line_items.edges {
+            let line_item_id = &edge.node.id;
+            // Extract numeric suffix from GID (gid://shopify/LineItem/<numeric>)
+            if let Some(numeric_id) = line_item_id.split('/').next_back() {
+                if let Some(variant) = edge.node.variant {
+                    // Extract image URL from variant media or product featured media
+                    let image_url = if let Some(media) = variant.media {
+                        if let Some(edge) = media.edges.first() {
+                            match &edge.node {
+                                crate::types::order::MediaNode::MediaImage { image } => {
+                                    Some(image.url.clone())
+                                }
+                            }
+                        } else {
+                            None
+                        }
+                    } else {
+                        None
+                    }
+                    .or_else(|| {
+                        variant
+                            .product
+                            .featured_media
+                            .as_ref()
+                            .map(|featured| match featured {
+                                crate::types::order::FeaturedMedia::MediaImage { image } => {
+                                    image.url.clone()
+                                }
+                            })
+                    });
+
+                    result.insert(
+                        numeric_id.to_string(),
+                        LineItemVariantDetail {
+                            variant_id: variant.id,
+                            selected_options: variant.selected_options,
+                            image_url,
+                        },
+                    );
+                }
+            }
+        }
+    }
+
+    Ok(result)
 }

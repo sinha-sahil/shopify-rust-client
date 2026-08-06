@@ -4,9 +4,11 @@ use crate::common::ServiceContext;
 
 use std::sync::Arc;
 
+use std::collections::HashMap;
+
 use crate::{
     common::types::{APIError, RequestCallbacks},
-    types::order::{GetOrderResp, OrderQueryResp, PatchOrderRequest},
+    types::order::{GetOrderResp, LineItemVariantDetail, OrderQueryResp, PatchOrderRequest},
 };
 
 pub struct Order {
@@ -48,5 +50,12 @@ impl Order {
         patch_request: &PatchOrderRequest,
     ) -> Result<GetOrderResp, APIError> {
         remote::patch_order(&self.ctx, order_id, patch_request).await
+    }
+
+    pub async fn get_line_items_variant(
+        &self,
+        order_id: &str,
+    ) -> Result<HashMap<String, LineItemVariantDetail>, APIError> {
+        remote::get_order_line_items_variant(&self.ctx, order_id).await
     }
 }

@@ -8,6 +8,7 @@ pub mod draft_order;
 pub mod inventory;
 pub mod order;
 pub mod product;
+pub mod returns;
 pub mod shop;
 pub mod shopify_functions;
 pub mod storefront_access_token;
