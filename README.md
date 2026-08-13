@@ -105,6 +105,7 @@ async fn main() {
 | **`client.storefront_access_token`** | GraphQL | `list`, `create`, `delete` |
 | **`client.bulk_operation`** | GraphQL | `run_query`, `run_mutation`, `cancel`, `get`, `list`, `create_staged_upload`, `export_*`, `stream_*` |
 | **`client.theme`** | GraphQL | `list`, `get_live`, `create_preview` |
+| **`client.access_scope`** | REST | `list` |
 
 Admin services live under `shopify_client::admin::*` (also re-exported as `shopify_client::services::*` for back-compat with pre-0.19 releases). Request/response types live under `shopify_client::types::*`.
 
@@ -159,6 +160,17 @@ println!("Owner: {}", resp.shop.account_owner.email);
 // Lightweight status check — useful for health checks / setup wizards
 let status = client.shop.get_status().await?;
 println!("Setup required: {}", status.shop.setup_required);
+```
+
+### Access Scopes
+
+```rust
+// Reflects scopes as they stand now, unlike the `scope` string returned at OAuth time
+let resp = client.access_scope.list().await?;
+
+for scope in &resp.access_scopes {
+    println!("Granted: {}", scope.handle);
+}
 ```
 
 <details>

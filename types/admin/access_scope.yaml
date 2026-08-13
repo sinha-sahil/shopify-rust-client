@@ -1,0 +1,12 @@
+# Access scope types for Shopify Admin API.
+AccessScope:
+  AccessScopesResp:
+    type: object
+    description: "Response for GET /admin/oauth/access_scopes.json"
+    required:
+      - access_scopes
+    properties:
+      access_scopes:
+        type: array
+        items:
+          $ref: "./types/admin/common.yaml#/Common/AccessScope"

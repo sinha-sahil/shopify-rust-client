@@ -16,6 +16,12 @@ pub struct PageInfo {
     pub end_cursor: Option<String>,
 }
 
+/// An OAuth access scope granted to the app
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccessScope {
+    pub handle: String,
+}
+
 /// An error returned from a GraphQL mutation
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UserError {

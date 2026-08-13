@@ -16,6 +16,15 @@ Common:
       endCursor:
         type: string
 
+  AccessScope:
+    type: object
+    description: 'An OAuth access scope granted to the app'
+    required:
+      - handle
+    properties:
+      handle:
+        type: string
+
   UserError:
     type: object
     description: 'An error returned from a GraphQL mutation'
