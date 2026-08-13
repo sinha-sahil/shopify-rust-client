@@ -6,5 +6,8 @@ groupedTypes:
   Common:
     $ref: './types/admin/common.yaml#/Common'
 
+  AccessScope:
+    $ref: './types/admin/access_scope.yaml#/AccessScope'
+
   Theme:
     $ref: './types/admin/theme.yaml#/Theme'

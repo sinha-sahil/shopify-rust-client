@@ -1,3 +1,4 @@
+pub mod access_scope;
 pub mod app_installation;
 pub mod bulk_operation;
 pub mod cart_transform;
