@@ -24,10 +24,14 @@ Cart:
       createdAt:
         type: string
         format: date-time
+        customAttributes:
+          x-date-format: rfc3339
         description: 'The date and time when the cart was created'
       updatedAt:
         type: string
         format: date-time
+        customAttributes:
+          x-date-format: rfc3339
         description: 'The date and time when the cart was updated'
       note:
         type: string
