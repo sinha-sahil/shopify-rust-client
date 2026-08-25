@@ -19,9 +19,11 @@ pub struct Cart {
     #[serde(rename = "checkoutUrl")]
     pub checkout_url: String,
     /// The date and time when the cart was created
+    #[serde(with = "time::serde::rfc3339")]
     #[serde(rename = "createdAt")]
     pub created_at: time::OffsetDateTime,
     /// The date and time when the cart was updated
+    #[serde(with = "time::serde::rfc3339")]
     #[serde(rename = "updatedAt")]
     pub updated_at: time::OffsetDateTime,
     /// Note attached to the cart
