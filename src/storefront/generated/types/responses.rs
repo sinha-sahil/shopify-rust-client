@@ -21,6 +21,7 @@ use super::metafields::Metaobject;
 use super::metafields::MetaobjectConnection;
 use super::products::Product;
 use super::products::ProductConnection;
+use super::products::ProductVariant;
 use super::search::PredictiveSearchResult;
 use super::search::SearchResultItemConnection;
 use super::shop::Shop;
@@ -46,6 +47,13 @@ pub struct ProductRecommendationsResponse {
     #[serde(rename = "productRecommendations")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub product_recommendations: Option<Vec<Product>>,
+}
+
+/// GraphQL response containing product variants resolved by id
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProductVariantsResponse {
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub nodes: Vec<Option<ProductVariant>>,
 }
 
 /// GraphQL response containing a single collection
