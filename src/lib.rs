@@ -22,6 +22,7 @@ pub struct ShopifyClient {
     pub shop: admin::shop::Shop,
     pub storefront_access_token: admin::storefront_access_token::StorefrontAccessToken,
     pub bulk_operation: admin::bulk_operation::BulkOperation,
+    pub returns: admin::returns::Returns,
     pub theme: admin::theme::ThemeService,
     pub access_scope: admin::access_scope::AccessScope,
 }
@@ -57,6 +58,7 @@ impl ShopifyClient {
             storefront_access_token:
                 admin::storefront_access_token::StorefrontAccessToken::with_ctx(ctx.clone()),
             bulk_operation: admin::bulk_operation::BulkOperation::with_ctx(ctx.clone()),
+            returns: admin::returns::Returns::with_ctx(ctx.clone()),
             theme: admin::theme::ThemeService::with_ctx(ctx.clone()),
             access_scope: admin::access_scope::AccessScope::with_ctx(ctx),
         }

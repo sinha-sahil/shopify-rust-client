@@ -286,3 +286,93 @@ impl OrderQueryParams {
 }
 
 // endregion
+
+// region: GraphQL Line Item Variant Details
+
+/// Represents a selected option (e.g., Color, Size) on a product variant.
+#[derive(serde::Deserialize, Debug, Clone)]
+pub struct SelectedOption {
+    pub name: String,
+    pub value: String,
+}
+
+/// Represents media (image) information for a line item's variant.
+/// LineItem has no `legacyResourceId` field — the numeric suffix of its GID
+/// (`gid://shopify/LineItem/<numeric>`) is the join key that matches the REST
+/// order payload's line-item id.
+#[derive(serde::Deserialize, Debug, Clone)]
+pub struct LineItemVariantDetail {
+    pub variant_id: String,
+    pub selected_options: Vec<SelectedOption>,
+    pub image_url: Option<String>,
+}
+
+/// Response wrapper for GraphQL line item variant query (first: 50).
+#[derive(serde::Deserialize, Debug)]
+pub struct LineItemVariantEdge {
+    pub node: LineItemVariantNode,
+}
+
+#[derive(serde::Deserialize, Debug)]
+pub struct LineItemVariantNode {
+    pub id: String,
+    pub variant: Option<VariantData>,
+}
+
+#[derive(serde::Deserialize, Debug)]
+pub struct VariantData {
+    pub id: String,
+    pub selected_options: Vec<SelectedOption>,
+    pub media: Option<MediaConnection>,
+    pub product: ProductMediaData,
+}
+
+#[derive(serde::Deserialize, Debug)]
+pub struct MediaConnection {
+    pub edges: Vec<MediaEdge>,
+}
+
+#[derive(serde::Deserialize, Debug)]
+pub struct MediaEdge {
+    pub node: MediaNode,
+}
+
+#[derive(serde::Deserialize, Debug)]
+#[serde(tag = "__typename")]
+pub enum MediaNode {
+    MediaImage { image: ImageData },
+}
+
+#[derive(serde::Deserialize, Debug)]
+pub struct ImageData {
+    pub url: String,
+}
+
+#[derive(serde::Deserialize, Debug)]
+pub struct ProductMediaData {
+    pub featured_media: Option<FeaturedMedia>,
+}
+
+#[derive(serde::Deserialize, Debug)]
+#[serde(tag = "__typename")]
+pub enum FeaturedMedia {
+    MediaImage { image: ImageData },
+}
+
+#[derive(serde::Deserialize, Debug)]
+pub struct OrderLineItemsVariantResponse {
+    pub order: Option<OrderWithLineItemsVariant>,
+}
+
+#[derive(serde::Deserialize, Debug)]
+pub struct OrderWithLineItemsVariant {
+    pub id: String,
+    pub line_items: LineItemVariantConnection,
+}
+
+#[derive(serde::Deserialize, Debug)]
+pub struct LineItemVariantConnection {
+    pub edges: Vec<LineItemVariantEdge>,
+}
+
+// endregion
