@@ -752,6 +752,12 @@ pub struct BulkExportInventoryItem {
     pub created_at: Option<String>,
     pub updated_at: Option<String>,
     pub unit_cost: Option<BulkExportMoney>,
+    pub variant: Option<BulkExportInventoryVariantRef>,
+}
+
+#[derive(serde::Deserialize, Debug, Clone)]
+pub struct BulkExportInventoryVariantRef {
+    pub id: String,
 }
 
 #[derive(serde::Deserialize, Debug, Clone)]
