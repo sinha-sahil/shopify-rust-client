@@ -663,6 +663,9 @@ pub fn inventory_items_query(filter: Option<&str>) -> String {
           amount
           currencyCode
         }
+        variant {
+          id
+        }
         inventoryLevels {
           edges {
             node {
