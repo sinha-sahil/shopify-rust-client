@@ -674,10 +674,6 @@ pub fn inventory_items_query(filter: Option<&str>) -> String {
                 name
                 quantity
               }
-              location {
-                id
-                name
-              }
               updatedAt
             }
           }
