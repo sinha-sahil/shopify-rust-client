@@ -6,7 +6,9 @@ use std::sync::Arc;
 
 use crate::{
     common::types::{APIError, RequestCallbacks},
-    types::order::{GetOrderResp, OrderQueryResp, PatchOrderRequest},
+    types::order::{
+        GetOrderResp, OrderDiscountsAndTransactionsResp, OrderQueryResp, PatchOrderRequest,
+    },
 };
 
 pub struct Order {
@@ -36,6 +38,14 @@ impl Order {
 
     pub async fn get_with_id(&self, order_id: &String) -> Result<GetOrderResp, APIError> {
         remote::get_order_with_id(&self.ctx, order_id).await
+    }
+
+    pub async fn discounts_and_transactions(
+        &self,
+        order_gid: &str,
+        lines: u32,
+    ) -> Result<OrderDiscountsAndTransactionsResp, APIError> {
+        remote::get_order_discounts_and_transactions(&self.ctx, order_gid, lines).await
     }
 
     pub async fn get_with_name(&self, order_name: &String) -> Result<OrderQueryResp, APIError> {

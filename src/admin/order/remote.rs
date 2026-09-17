@@ -1,8 +1,15 @@
 use reqwest::header::{HeaderMap, HeaderValue, CONTENT_TYPE};
 
 use crate::{
-    common::{http::http_client, types::APIError, utils::parse_response_from_text, ServiceContext},
-    types::order::{GetOrderResp, OrderQueryResp, PatchOrderRequest},
+    common::{
+        http::{execute_graphql, http_client},
+        types::APIError,
+        utils::parse_response_from_text,
+        ServiceContext,
+    },
+    types::order::{
+        GetOrderResp, OrderDiscountsAndTransactionsResp, OrderQueryResp, PatchOrderRequest,
+    },
 };
 
 pub async fn patch_order(
@@ -156,4 +163,38 @@ pub async fn get_order_with_id(
             Err(APIError::NetworkError)
         }
     }
+}
+
+pub async fn get_order_discounts_and_transactions(
+    ctx: &ServiceContext,
+    order_gid: &str,
+    lines: u32,
+) -> Result<OrderDiscountsAndTransactionsResp, APIError> {
+    let query = r#"
+        query orderDiscountsAndTransactions($id: ID!, $lines: Int!) {
+            order(id: $id) {
+                discountCodes
+                transactions {
+                    gateway
+                    kind
+                    status
+                    amountSet { shopMoney { amount currencyCode } }
+                }
+                lineItems(first: $lines) {
+                    nodes {
+                        id
+                        discountAllocations {
+                            allocatedAmountSet { shopMoney { amount currencyCode } }
+                        }
+                    }
+                    pageInfo { hasNextPage }
+                }
+                cartDiscountAmountSet { shopMoney { amount currencyCode } }
+            }
+        }
+    "#;
+
+    let variables = serde_json::json!({ "id": order_gid, "lines": lines });
+
+    execute_graphql(ctx, query, variables).await
 }

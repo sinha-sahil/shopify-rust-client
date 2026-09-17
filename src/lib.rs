@@ -14,6 +14,7 @@ pub use common::ServiceContext;
 
 pub struct ShopifyClient {
     pub order: admin::order::Order,
+    pub returns: admin::returns::Returns,
     pub subscription: admin::subscription::Subscription,
     pub app_installation: admin::app_installation::AppInstallation,
     pub discount: admin::discount::Discount,
@@ -48,6 +49,7 @@ impl ShopifyClient {
 
         ShopifyClient {
             order: admin::order::Order::with_ctx(ctx.clone()),
+            returns: admin::returns::Returns::with_ctx(ctx.clone()),
             subscription: admin::subscription::Subscription::with_ctx(ctx.clone()),
             app_installation: admin::app_installation::AppInstallation::with_ctx(ctx.clone()),
             discount: admin::discount::Discount::with_ctx(ctx.clone()),
