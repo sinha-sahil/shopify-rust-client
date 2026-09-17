@@ -286,3 +286,64 @@ impl OrderQueryParams {
 }
 
 // endregion
+
+#[derive(serde::Deserialize, Debug, Clone)]
+pub struct OrderDiscountsAndTransactionsResp {
+    pub order: Option<OrderDiscountsAndTransactions>,
+}
+
+#[derive(serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct OrderDiscountsAndTransactions {
+    #[serde(default)]
+    pub discount_codes: Vec<String>,
+    #[serde(default)]
+    pub transactions: Vec<OrderTransaction>,
+    pub line_items: DiscountedLineItems,
+    pub cart_discount_amount_set: Option<MoneyBag>,
+}
+
+#[derive(serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct OrderTransaction {
+    #[serde(default)]
+    pub gateway: Option<String>,
+    #[serde(default)]
+    pub kind: Option<String>,
+    #[serde(default)]
+    pub status: Option<String>,
+    pub amount_set: MoneyBag,
+}
+
+#[derive(serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct DiscountedLineItems {
+    pub nodes: Vec<DiscountedLineItem>,
+    pub page_info: PageInfo,
+}
+
+#[derive(serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct PageInfo {
+    pub has_next_page: bool,
+}
+
+#[derive(serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct DiscountedLineItem {
+    pub id: String,
+    #[serde(default)]
+    pub discount_allocations: Vec<DiscountAllocation>,
+}
+
+#[derive(serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct DiscountAllocation {
+    pub allocated_amount_set: MoneyBag,
+}
+
+#[derive(serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct MoneyBag {
+    pub shop_money: Money,
+}

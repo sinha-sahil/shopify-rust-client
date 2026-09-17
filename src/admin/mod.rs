@@ -5,6 +5,7 @@ pub mod cart_transform;
 pub mod discount;
 pub mod generated;
 pub mod order;
+pub mod returns;
 pub mod shop;
 pub mod shopify_functions;
 pub mod storefront_access_token;
