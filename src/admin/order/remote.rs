@@ -8,7 +8,8 @@ use crate::{
         ServiceContext,
     },
     types::order::{
-        GetOrderResp, OrderDiscountsAndTransactionsResp, OrderQueryResp, PatchOrderRequest,
+        GetOrderResp, OrderDetailByNameResp, OrderDetailResp, OrderDiscountsAndTransactionsResp,
+        OrderQueryResp, PatchOrderRequest,
     },
 };
 
@@ -197,4 +198,97 @@ pub async fn get_order_discounts_and_transactions(
     let variables = serde_json::json!({ "id": order_gid, "lines": lines });
 
     execute_graphql(ctx, query, variables).await
+}
+
+const ORDER_DETAIL_FIELDS: &str = r#"
+    id
+    name
+    email
+    phone
+    createdAt
+    currencyCode
+    displayFinancialStatus
+    taxesIncluded
+    discountCodes
+    cartDiscountAmountSet { shopMoney { amount currencyCode } }
+    customer {
+        id
+        firstName
+        lastName
+        defaultEmailAddress { emailAddress }
+        defaultPhoneNumber { phoneNumber }
+    }
+    shippingAddress {
+        name firstName lastName phone address1 address2
+        city province country countryCodeV2 zip
+    }
+    transactions {
+        gateway
+        kind
+        status
+        amountSet { shopMoney { amount currencyCode } }
+    }
+    fulfillments(first: $fulfillments) {
+        status
+        createdAt
+        updatedAt
+        trackingInfo { company number url }
+        fulfillmentLineItems(first: $lines) {
+            nodes { quantity lineItem { id } }
+        }
+    }
+    lineItems(first: $lines) {
+        nodes {
+            id
+            title
+            variantTitle
+            quantity
+            unfulfilledQuantity
+            sku
+            product { id }
+            variant { id }
+            originalUnitPriceSet { shopMoney { amount currencyCode } }
+            totalDiscountSet { shopMoney { amount currencyCode } }
+            discountAllocations { allocatedAmountSet { shopMoney { amount currencyCode } } }
+        }
+        pageInfo { hasNextPage }
+    }
+"#;
+
+pub async fn get_order_detail(
+    ctx: &ServiceContext,
+    order_gid: &str,
+    lines: u32,
+    fulfillments: u32,
+) -> Result<OrderDetailResp, APIError> {
+    let query = format!(
+        "query orderDetail($id: ID!, $lines: Int!, $fulfillments: Int!) {{ order(id: $id) {{ {ORDER_DETAIL_FIELDS} }} }}"
+    );
+
+    let variables = serde_json::json!({
+        "id": order_gid,
+        "lines": lines,
+        "fulfillments": fulfillments
+    });
+
+    execute_graphql(ctx, &query, variables).await
+}
+
+pub async fn find_order_detail_by_name(
+    ctx: &ServiceContext,
+    name: &str,
+    lines: u32,
+    fulfillments: u32,
+) -> Result<OrderDetailByNameResp, APIError> {
+    let query = format!(
+        "query orderDetailByName($search: String!, $lines: Int!, $fulfillments: Int!) {{ orders(first: 1, query: $search) {{ nodes {{ {ORDER_DETAIL_FIELDS} }} }} }}"
+    );
+
+    let variables = serde_json::json!({
+        "search": format!("name:{name}"),
+        "lines": lines,
+        "fulfillments": fulfillments
+    });
+
+    execute_graphql(ctx, &query, variables).await
 }
