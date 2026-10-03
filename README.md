@@ -96,6 +96,8 @@ async fn main() {
 | Service | Protocol | Operations |
 |---------|----------|------------|
 | **`client.order`** | REST | `get_with_id`, `get_with_name`, `patch` |
+| **`client.returns`** | GraphQL | `request`, `create`, `approve`, `decline`, `cancel`, `remove_lines`, `status`, `returnable_fulfillments`, `returnable_fulfillment`, `processable`, `suggested_financial_outcome`, `refunds`, `process` |
+| **`client.product`** | GraphQL | `variant` |
 | **`client.subscription`** | GraphQL | `create_recurring`, `create_usage`, `create_combined`, `cancel`, `extend_trial`, `update_capped_amount`, `create_usage_record`, `get_active_subscriptions` |
 | **`client.discount`** | GraphQL | `create_automatic_app_discount`, `update_automatic_app_discount`, `get_discount_nodes` |
 | **`client.app_installation`** | GraphQL | `get_current`, `set_metafields`, `get_metafield`, `list_metafields` |

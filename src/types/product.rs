@@ -1,6 +1,7 @@
 use std::fmt;
 
 use crate::common::query_filter::DateFilter;
+use crate::common::types::Node;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ProductStatus {
@@ -64,4 +65,16 @@ impl ProductQueryParams {
             Some(parts.join(" "))
         }
     }
+}
+
+#[derive(serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct ProductVariantResp {
+    pub product_variant: Option<ProductVariant>,
+}
+
+#[derive(serde::Deserialize, Debug, Clone)]
+pub struct ProductVariant {
+    pub id: String,
+    pub product: Node,
 }

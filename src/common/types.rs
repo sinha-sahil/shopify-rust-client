@@ -25,13 +25,25 @@ pub struct AccessScope {
     pub handle: String,
 }
 
-#[derive(serde::Deserialize, Debug)]
+#[derive(serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct PageInfo {
     pub has_next_page: bool,
     pub has_previous_page: Option<bool>,
     pub start_cursor: Option<String>,
     pub end_cursor: Option<String>,
+}
+
+#[derive(serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct Connection<T> {
+    pub nodes: Vec<T>,
+    pub page_info: PageInfo,
+}
+
+#[derive(serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+pub struct Node {
+    pub id: String,
 }
 
 pub type BeforeRequestCallback = Arc<dyn Fn(&str, Option<&str>, &HeaderMap) + Send + Sync>;
