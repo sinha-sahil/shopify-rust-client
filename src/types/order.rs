@@ -346,6 +346,8 @@ pub struct DiscountAllocation {
 #[serde(rename_all = "camelCase")]
 pub struct MoneyBag {
     pub shop_money: MoneyV2,
+    #[serde(default)]
+    pub presentment_money: Option<MoneyV2>,
 }
 
 #[derive(serde::Deserialize, Debug, Clone)]

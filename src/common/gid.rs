@@ -10,6 +10,7 @@ pub struct Gid<'a> {
 
 impl<'a> Gid<'a> {
     pub const ORDER: &'static str = "Order";
+    pub const PRODUCT_VARIANT: &'static str = "ProductVariant";
 
     pub fn of(kind: &'a str, id: &'a str) -> Self {
         Self {
