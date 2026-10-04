@@ -7,6 +7,7 @@ use crate::common::types::APIError;
 
 const TOKEN_EXCHANGE_GRANT_TYPE: &str = "urn:ietf:params:oauth:grant-type:token-exchange";
 const ID_TOKEN_TYPE: &str = "urn:ietf:params:oauth:token-type:id_token";
+const REFRESH_TOKEN_GRANT_TYPE: &str = "refresh_token";
 const OFFLINE_ACCESS_TOKEN_TYPE: &str = "urn:shopify:params:oauth:token-type:offline-access-token";
 
 pub async fn exchange_session_token(
@@ -22,6 +23,41 @@ pub async fn exchange_session_token(
         "subject_token": id_token,
         "subject_token_type": ID_TOKEN_TYPE,
         "requested_token_type": OFFLINE_ACCESS_TOKEN_TYPE,
+    });
+
+    request_access_token(shop_url, &body).await
+}
+
+pub async fn exchange_session_token_expiring(
+    shop_url: &str,
+    id_token: &str,
+    client_id: &str,
+    client_secret: &str,
+) -> Result<AccessTokenResponse, APIError> {
+    let body = serde_json::json!({
+        "client_id": client_id,
+        "client_secret": client_secret,
+        "grant_type": TOKEN_EXCHANGE_GRANT_TYPE,
+        "subject_token": id_token,
+        "subject_token_type": ID_TOKEN_TYPE,
+        "requested_token_type": OFFLINE_ACCESS_TOKEN_TYPE,
+        "expiring": "1",
+    });
+
+    request_access_token(shop_url, &body).await
+}
+
+pub async fn refresh_access_token(
+    shop_url: &str,
+    refresh_token: &str,
+    client_id: &str,
+    client_secret: &str,
+) -> Result<AccessTokenResponse, APIError> {
+    let body = serde_json::json!({
+        "client_id": client_id,
+        "client_secret": client_secret,
+        "grant_type": REFRESH_TOKEN_GRANT_TYPE,
+        "refresh_token": refresh_token,
     });
 
     request_access_token(shop_url, &body).await
@@ -89,5 +125,14 @@ mod tests {
         let resp: AccessTokenResponse = serde_json::from_str(json).unwrap();
         assert_eq!(resp.access_token, "shpat_abc123");
         assert_eq!(resp.scope, None);
+    }
+
+    #[test]
+    fn deserialize_expiring_access_token_response() {
+        let json = r#"{"access_token":"shpat_y","expires_in":3600,"refresh_token":"shprt_z","refresh_token_expires_in":7776000,"scope":"read_orders"}"#;
+        let resp: AccessTokenResponse = serde_json::from_str(json).unwrap();
+        assert_eq!(resp.expires_in, Some(3600));
+        assert_eq!(resp.refresh_token.as_deref(), Some("shprt_z"));
+        assert_eq!(resp.refresh_token_expires_in, Some(7_776_000));
     }
 }
