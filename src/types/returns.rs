@@ -20,6 +20,8 @@ pub struct ReturnCreateLineItemInput {
     pub fulfillment_line_item_id: String,
     pub quantity: i32,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub return_reason_definition_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub return_reason_note: Option<String>,
 }
 
@@ -231,6 +233,19 @@ pub struct ReturnStatusResp {
 
 #[derive(serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
+pub struct ReturnReasonDefinitionsResp {
+    pub return_reason_definitions: Connection<ReturnReasonDefinition>,
+}
+
+#[derive(serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+pub struct ReturnReasonDefinition {
+    pub id: String,
+    pub handle: String,
+    pub name: String,
+}
+
+#[derive(serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct ReturnableFulfillmentsResp {
     pub returnable_fulfillments: Connection<ReturnableFulfillment>,
 }
@@ -402,6 +417,40 @@ mod graphql_shape_tests {
                 "returnReasonDefinitionId": "gid://shopify/ReturnReasonDefinition/3"
             })
         );
+    }
+
+    #[test]
+    fn a_create_line_names_its_reason_definition_by_id() {
+        let line = ReturnCreateLineItemInput {
+            fulfillment_line_item_id: "gid://shopify/FulfillmentLineItem/1".to_string(),
+            quantity: 1,
+            return_reason_definition_id: Some("gid://shopify/ReturnReasonDefinition/3".to_string()),
+            return_reason_note: None,
+        };
+        assert_eq!(
+            serde_json::to_value(&line).expect("serializes"),
+            json!({
+                "fulfillmentLineItemId": "gid://shopify/FulfillmentLineItem/1",
+                "quantity": 1,
+                "returnReasonDefinitionId": "gid://shopify/ReturnReasonDefinition/3"
+            })
+        );
+    }
+
+    #[test]
+    fn reason_definitions_parse_with_their_handles() {
+        let resp: ReturnReasonDefinitionsResp = serde_json::from_value(json!({
+            "returnReasonDefinitions": {
+                "nodes": [{
+                    "id": "gid://shopify/ReturnReasonDefinition/3",
+                    "handle": "wrong-item",
+                    "name": "Received the wrong item"
+                }],
+                "pageInfo": { "hasNextPage": false, "endCursor": null }
+            }
+        }))
+        .expect("parses");
+        assert_eq!(resp.return_reason_definitions.nodes[0].handle, "wrong-item");
     }
 
     #[test]

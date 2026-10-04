@@ -11,8 +11,8 @@ use crate::{
         ReturnApproveRequestResp, ReturnCancelResp, ReturnCreateLineItemInput, ReturnCreateResp,
         ReturnDeclineReason, ReturnDeclineRequestResp, ReturnFinancialOutcomeResp,
         ReturnLineItemInput, ReturnLineQuantityInput, ReturnProcessInput, ReturnProcessResp,
-        ReturnRefundsResp, ReturnRequestResp, ReturnStatusResp, ReturnableFulfillmentResp,
-        ReturnableFulfillmentsResp,
+        ReturnReasonDefinitionsResp, ReturnRefundsResp, ReturnRequestResp, ReturnStatusResp,
+        ReturnableFulfillmentResp, ReturnableFulfillmentsResp,
     },
 };
 
@@ -85,6 +85,14 @@ impl Returns {
 
     pub async fn status(&self, return_id: &str) -> Result<ReturnStatusResp, APIError> {
         remote::get_return_status(&self.ctx, return_id).await
+    }
+
+    pub async fn reason_definitions(
+        &self,
+        first: u32,
+        after: Option<&str>,
+    ) -> Result<ReturnReasonDefinitionsResp, APIError> {
+        remote::get_return_reason_definitions(&self.ctx, first, after).await
     }
 
     pub async fn returnable_fulfillments(
