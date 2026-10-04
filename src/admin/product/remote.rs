@@ -14,8 +14,15 @@ pub async fn get_variant(
         query productVariant($id: ID!) {
             productVariant(id: $id) {
                 id
+                title
+                media(first: 1) {
+                    nodes { preview { image { url } } }
+                    pageInfo { hasNextPage }
+                }
                 product {
                     id
+                    title
+                    featuredMedia { preview { image { url } } }
                 }
             }
         }
