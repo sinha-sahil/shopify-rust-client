@@ -3,8 +3,8 @@ pub mod verify;
 
 use serde_json::Value;
 use types::{
-    CustomersDataRequestPayload, CustomersRedactPayload, ShopRedactPayload, WebhookParseError,
-    WebhookPayload,
+    CustomersDataRequestPayload, CustomersRedactPayload, ReturnWebhookPayload, ShopRedactPayload,
+    WebhookParseError, WebhookPayload,
 };
 
 pub use types::{OAuthRedirectParams, VerificationError};
@@ -14,6 +14,10 @@ pub enum WebhookTopic {
     CustomersDataRequest,
     CustomersRedact,
     ShopRedact,
+    ReturnsApprove,
+    ReturnsDecline,
+    ReturnsCancel,
+    ReturnsClose,
 }
 
 impl WebhookTopic {
@@ -22,6 +26,10 @@ impl WebhookTopic {
             "customers/data_request" => Some(WebhookTopic::CustomersDataRequest),
             "customers/redact" => Some(WebhookTopic::CustomersRedact),
             "shop/redact" => Some(WebhookTopic::ShopRedact),
+            "returns/approve" => Some(WebhookTopic::ReturnsApprove),
+            "returns/decline" => Some(WebhookTopic::ReturnsDecline),
+            "returns/cancel" => Some(WebhookTopic::ReturnsCancel),
+            "returns/close" => Some(WebhookTopic::ReturnsClose),
             _ => None,
         }
     }
@@ -43,6 +51,10 @@ pub fn parse_webhook(
         WebhookTopic::ShopRedact => serde_json::from_str::<ShopRedactPayload>(payload)
             .map(WebhookPayload::ShopRedact)
             .map_err(|e| WebhookParseError::ParseError(e.to_string())),
+        WebhookTopic::ReturnsApprove => parse_return(payload).map(WebhookPayload::ReturnsApprove),
+        WebhookTopic::ReturnsDecline => parse_return(payload).map(WebhookPayload::ReturnsDecline),
+        WebhookTopic::ReturnsCancel => parse_return(payload).map(WebhookPayload::ReturnsCancel),
+        WebhookTopic::ReturnsClose => parse_return(payload).map(WebhookPayload::ReturnsClose),
     }
 }
 
@@ -62,7 +74,25 @@ pub fn parse_webhook_from_value(
         WebhookTopic::ShopRedact => serde_json::from_value::<ShopRedactPayload>(payload)
             .map(WebhookPayload::ShopRedact)
             .map_err(|e| WebhookParseError::ParseError(e.to_string())),
+        WebhookTopic::ReturnsApprove => {
+            parse_return_value(payload).map(WebhookPayload::ReturnsApprove)
+        }
+        WebhookTopic::ReturnsDecline => {
+            parse_return_value(payload).map(WebhookPayload::ReturnsDecline)
+        }
+        WebhookTopic::ReturnsCancel => {
+            parse_return_value(payload).map(WebhookPayload::ReturnsCancel)
+        }
+        WebhookTopic::ReturnsClose => parse_return_value(payload).map(WebhookPayload::ReturnsClose),
     }
+}
+
+fn parse_return(payload: &str) -> Result<ReturnWebhookPayload, WebhookParseError> {
+    serde_json::from_str(payload).map_err(|e| WebhookParseError::ParseError(e.to_string()))
+}
+
+fn parse_return_value(payload: Value) -> Result<ReturnWebhookPayload, WebhookParseError> {
+    serde_json::from_value(payload).map_err(|e| WebhookParseError::ParseError(e.to_string()))
 }
 
 pub fn parse_webhook_with_header(
@@ -115,4 +145,49 @@ pub fn try_parse_webhook_from_value(payload: Value) -> Result<WebhookPayload, We
     }
 
     Err(WebhookParseError::UnknownWebhookType)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const DECLINED: &str = r#"{"id":37674025238,"admin_graphql_api_id":"gid://shopify/Return/37674025238","status":"declined","decline":{"reason":"other","note":"Seal broken"}}"#;
+
+    #[test]
+    fn a_return_topic_parses_into_its_own_variant() {
+        let Ok(WebhookPayload::ReturnsDecline(parsed)) =
+            parse_webhook_with_header("returns/decline", DECLINED)
+        else {
+            panic!("returns/decline parses as ReturnsDecline");
+        };
+        assert_eq!(
+            parsed.admin_graphql_api_id,
+            "gid://shopify/Return/37674025238"
+        );
+        assert_eq!(
+            parsed.decline.and_then(|decline| decline.note).as_deref(),
+            Some("Seal broken")
+        );
+    }
+
+    #[test]
+    fn a_return_payload_without_decline_or_status_still_parses() {
+        let minimal = r#"{"id":1,"admin_graphql_api_id":"gid://shopify/Return/1"}"#;
+        assert!(matches!(
+            parse_webhook_with_header("RETURNS/APPROVE", minimal),
+            Ok(WebhookPayload::ReturnsApprove(_))
+        ));
+        assert!(matches!(
+            parse_webhook_with_header("returns/close", minimal),
+            Ok(WebhookPayload::ReturnsClose(_))
+        ));
+    }
+
+    #[test]
+    fn an_unhandled_topic_is_unknown() {
+        assert!(matches!(
+            parse_webhook_with_header("returns/request", DECLINED),
+            Err(WebhookParseError::UnknownWebhookType)
+        ));
+    }
 }
