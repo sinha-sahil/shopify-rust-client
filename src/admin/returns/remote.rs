@@ -6,8 +6,8 @@ use crate::{
         ReturnApproveRequestResp, ReturnCancelResp, ReturnCreateLineItemInput, ReturnCreateResp,
         ReturnDeclineReason, ReturnDeclineRequestResp, ReturnFinancialOutcomeResp,
         ReturnLineItemInput, ReturnLineQuantityInput, ReturnProcessInput, ReturnProcessResp,
-        ReturnRefundsResp, ReturnRequestResp, ReturnStatusResp, ReturnableFulfillmentResp,
-        ReturnableFulfillmentsResp,
+        ReturnReasonDefinitionsResp, ReturnRefundsResp, ReturnRequestResp, ReturnStatusResp,
+        ReturnableFulfillmentResp, ReturnableFulfillmentsResp,
     },
 };
 
@@ -219,6 +219,23 @@ pub async fn get_return_status(
     "#;
 
     execute_graphql(ctx, query, json!({ "id": return_id })).await
+}
+
+pub async fn get_return_reason_definitions(
+    ctx: &ServiceContext,
+    first: u32,
+    after: Option<&str>,
+) -> Result<ReturnReasonDefinitionsResp, APIError> {
+    let query = r#"
+        query returnReasonDefinitions($first: Int!, $after: String) {
+            returnReasonDefinitions(first: $first, after: $after) {
+                nodes { id handle name }
+                pageInfo { hasNextPage endCursor }
+            }
+        }
+    "#;
+
+    execute_graphql(ctx, query, json!({ "first": first, "after": after })).await
 }
 
 pub async fn get_returnable_fulfillments(
