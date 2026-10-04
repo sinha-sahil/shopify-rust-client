@@ -33,11 +33,31 @@ pub struct ShopRedactPayload {
     pub shop_domain: String,
 }
 
+#[derive(serde::Deserialize, Debug, Clone, serde::Serialize)]
+pub struct ReturnDeclinePayload {
+    pub reason: Option<String>,
+    pub note: Option<String>,
+}
+
+#[derive(serde::Deserialize, Debug, Clone, serde::Serialize)]
+pub struct ReturnWebhookPayload {
+    pub id: u64,
+    pub admin_graphql_api_id: String,
+    #[serde(default)]
+    pub status: Option<String>,
+    #[serde(default)]
+    pub decline: Option<ReturnDeclinePayload>,
+}
+
 #[derive(Debug, Clone, serde::Serialize)]
 pub enum WebhookPayload {
     CustomersDataRequest(CustomersDataRequestPayload),
     CustomersRedact(CustomersRedactPayload),
     ShopRedact(ShopRedactPayload),
+    ReturnsApprove(ReturnWebhookPayload),
+    ReturnsDecline(ReturnWebhookPayload),
+    ReturnsCancel(ReturnWebhookPayload),
+    ReturnsClose(ReturnWebhookPayload),
 }
 
 #[derive(Debug, Clone)]
