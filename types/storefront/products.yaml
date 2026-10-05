@@ -339,6 +339,9 @@ Products:
         type: string
       handle:
         type: string
+      featuredImage:
+        $ref: './types/storefront/common.yaml#/Common/Image'
+        description: 'The featured image of the product'
 
   UnitPriceMeasurement:
     type: object
@@ -1006,3 +1009,15 @@ Products:
         type: string
       intent:
         $ref: './types/storefront/products.yaml#/Products/ProductRecommendationIntent'
+
+  GetProductVariantsArgs:
+    type: object
+    description: 'Arguments for fetching product variants by id'
+    required:
+      - ids
+    properties:
+      ids:
+        type: array
+        items:
+          type: string
+        description: 'Global IDs of the variants (gid://shopify/ProductVariant/...)'

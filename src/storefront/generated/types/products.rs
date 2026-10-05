@@ -311,6 +311,10 @@ pub struct ProductSummary {
     pub id: String,
     pub title: String,
     pub handle: String,
+    /// The featured image of the product
+    #[serde(rename = "featuredImage")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub featured_image: Option<Image>,
 }
 
 /// Unit price measurement
@@ -838,4 +842,11 @@ pub struct GetProductRecommendationsArgs {
     pub product_id: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub intent: Option<ProductRecommendationIntent>,
+}
+
+/// Arguments for fetching product variants by id
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GetProductVariantsArgs {
+    /// Global IDs of the variants (gid://shopify/ProductVariant/...)
+    pub ids: Vec<String>,
 }
