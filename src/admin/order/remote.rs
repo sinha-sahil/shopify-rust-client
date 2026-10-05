@@ -230,8 +230,10 @@ const ORDER_DETAIL_FIELDS: &str = r#"
     }
     fulfillments(first: $fulfillments) {
         status
+        displayStatus
         createdAt
         updatedAt
+        deliveredAt
         trackingInfo { company number url }
         fulfillmentLineItems(first: $lines) {
             nodes { quantity lineItem { id } }
