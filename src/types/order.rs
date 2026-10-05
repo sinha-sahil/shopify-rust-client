@@ -437,8 +437,10 @@ pub struct OrderDetailAddress {
 #[serde(rename_all = "camelCase")]
 pub struct OrderDetailFulfillment {
     pub status: Option<String>,
+    pub display_status: Option<String>,
     pub created_at: Option<String>,
     pub updated_at: Option<String>,
+    pub delivered_at: Option<String>,
     #[serde(default)]
     pub tracking_info: Vec<FulfillmentTrackingInfo>,
     pub fulfillment_line_items: FulfillmentLineItemNodes,
@@ -535,7 +537,7 @@ mod graphql_shape_tests {
                 "transactions":[{"gateway":"razorpay","kind":"SALE","status":"SUCCESS",
                     "amountSet":{"shopMoney":{"amount":"100.00","currencyCode":"INR"}}}],
                 "fulfillments":[{
-                    "status":"SUCCESS","createdAt":"2026-01-02T00:00:00Z","updatedAt":"2026-01-03T00:00:00Z",
+                    "status":"SUCCESS","displayStatus":"DELIVERED","createdAt":"2026-01-02T00:00:00Z","updatedAt":"2026-01-03T00:00:00Z","deliveredAt":"2026-01-04T00:00:00Z",
                     "trackingInfo":[{"company":"BD","number":"XYZ","url":"https://t/XYZ"}],
                     "fulfillmentLineItems":{"nodes":[{"quantity":1,"lineItem":{"id":"gid://shopify/LineItem/5"}}]}
                 }],
@@ -571,6 +573,14 @@ mod graphql_shape_tests {
         assert_eq!(
             order.fulfillments[0].tracking_info[0].number.as_deref(),
             Some("XYZ")
+        );
+        assert_eq!(
+            order.fulfillments[0].display_status.as_deref(),
+            Some("DELIVERED")
+        );
+        assert_eq!(
+            order.fulfillments[0].delivered_at.as_deref(),
+            Some("2026-01-04T00:00:00Z")
         );
         assert_eq!(
             order.fulfillments[0].fulfillment_line_items.nodes[0]
