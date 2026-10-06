@@ -59,6 +59,16 @@ impl Order {
         remote::find_order_detail_by_name(&self.ctx, name, lines, fulfillments).await
     }
 
+    pub async fn detail_by_name_or_id(
+        &self,
+        name: &str,
+        id: &str,
+        lines: u32,
+        fulfillments: u32,
+    ) -> Result<OrderDetailByNameResp, APIError> {
+        remote::find_order_detail_by_name_or_id(&self.ctx, name, id, lines, fulfillments).await
+    }
+
     pub async fn discounts_and_transactions(
         &self,
         order_gid: &str,
