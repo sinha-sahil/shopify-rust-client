@@ -294,3 +294,23 @@ pub async fn find_order_detail_by_name(
 
     execute_graphql(ctx, &query, variables).await
 }
+
+pub async fn find_order_detail_by_name_or_id(
+    ctx: &ServiceContext,
+    name: &str,
+    id: &str,
+    lines: u32,
+    fulfillments: u32,
+) -> Result<OrderDetailByNameResp, APIError> {
+    let query = format!(
+        "query orderDetailByNameOrId($search: String!, $lines: Int!, $fulfillments: Int!) {{ orders(first: 1, query: $search) {{ nodes {{ {ORDER_DETAIL_FIELDS} }} }} }}"
+    );
+
+    let variables = serde_json::json!({
+        "search": format!("name:{name} OR id:{id}"),
+        "lines": lines,
+        "fulfillments": fulfillments
+    });
+
+    execute_graphql(ctx, &query, variables).await
+}
