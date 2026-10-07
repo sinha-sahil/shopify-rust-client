@@ -247,7 +247,7 @@ const ORDER_DETAIL_FIELDS: &str = r#"
             quantity
             unfulfilledQuantity
             sku
-            product { id }
+            product { id productType tags }
             variant { id }
             originalUnitPriceSet { shopMoney { amount currencyCode } }
             totalDiscountSet { shopMoney { amount currencyCode } }
