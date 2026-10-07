@@ -474,6 +474,15 @@ pub struct LineItemRef {
 
 #[derive(serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
+pub struct LineItemProduct {
+    pub id: String,
+    pub product_type: Option<String>,
+    #[serde(default)]
+    pub tags: Vec<String>,
+}
+
+#[derive(serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct OrderDetailLineItems {
     pub nodes: Vec<OrderDetailLineItem>,
     pub page_info: PageInfo,
@@ -488,7 +497,7 @@ pub struct OrderDetailLineItem {
     pub quantity: i64,
     pub unfulfilled_quantity: Option<i64>,
     pub sku: Option<String>,
-    pub product: Option<LineItemRef>,
+    pub product: Option<LineItemProduct>,
     pub variant: Option<LineItemRef>,
     pub original_unit_price_set: Option<MoneyBag>,
     pub total_discount_set: Option<MoneyBag>,
@@ -545,7 +554,7 @@ mod graphql_shape_tests {
                     "nodes":[{
                         "id":"gid://shopify/LineItem/5","title":"Tee","variantTitle":"M",
                         "quantity":2,"unfulfilledQuantity":0,"sku":"TEE-M",
-                        "product":{"id":"gid://shopify/Product/9"},
+                        "product":{"id":"gid://shopify/Product/9","productType":"INJK","tags":["Device","Non Electrical"]},
                         "variant":{"id":"gid://shopify/ProductVariant/11"},
                         "originalUnitPriceSet":{"shopMoney":{"amount":"50.00","currencyCode":"INR"}},
                         "totalDiscountSet":{"shopMoney":{"amount":"2.00","currencyCode":"INR"}},
@@ -590,6 +599,12 @@ mod graphql_shape_tests {
             Some("gid://shopify/LineItem/5")
         );
         assert_eq!(order.line_items.nodes[0].sku.as_deref(), Some("TEE-M"));
+        let product = order.line_items.nodes[0].product.as_ref().expect("product");
+        assert_eq!(product.product_type.as_deref(), Some("INJK"));
+        assert_eq!(
+            product.tags,
+            vec!["Device".to_string(), "Non Electrical".to_string()]
+        );
         assert!(!order.line_items.page_info.has_next_page);
     }
 
