@@ -8,8 +8,8 @@ use crate::{
         ServiceContext,
     },
     types::order::{
-        GetOrderResp, OrderDetailByNameResp, OrderDetailResp, OrderDiscountsAndTransactionsResp,
-        OrderQueryResp, PatchOrderRequest,
+        CustomerOrdersResp, GetOrderResp, OrderDetailByNameResp, OrderDetailResp,
+        OrderDiscountsAndTransactionsResp, OrderQueryResp, PatchOrderRequest,
     },
 };
 
@@ -313,4 +313,43 @@ pub async fn find_order_detail_by_name_or_id(
     });
 
     execute_graphql(ctx, &query, variables).await
+}
+
+const CUSTOMER_ORDERS_QUERY: &str = r#"
+    query customerOrders($search: String!, $first: Int!, $after: String, $lines: Int!) {
+        orders(first: $first, after: $after, query: $search, sortKey: CREATED_AT, reverse: true) {
+            nodes {
+                name
+                createdAt
+                displayFinancialStatus
+                cancelledAt
+                currentTotalPriceSet { shopMoney { amount currencyCode } }
+                lineItems(first: $lines) {
+                    nodes { title quantity }
+                    pageInfo { hasNextPage }
+                }
+                subscriptionContracts(first: 1) {
+                    nodes { id }
+                }
+            }
+            pageInfo { hasNextPage endCursor }
+        }
+    }
+"#;
+
+pub async fn list_customer_orders(
+    ctx: &ServiceContext,
+    search: &str,
+    first: u32,
+    after: Option<&str>,
+    lines: u32,
+) -> Result<CustomerOrdersResp, APIError> {
+    let variables = serde_json::json!({
+        "search": search,
+        "first": first,
+        "after": after,
+        "lines": lines,
+    });
+
+    execute_graphql(ctx, CUSTOMER_ORDERS_QUERY, variables).await
 }

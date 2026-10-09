@@ -505,6 +505,39 @@ pub struct OrderDetailLineItem {
     pub discount_allocations: Vec<DiscountAllocation>,
 }
 
+#[derive(serde::Deserialize, Debug, Clone)]
+pub struct CustomerOrdersResp {
+    pub orders: crate::common::types::Connection<CustomerOrder>,
+}
+
+#[derive(serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct CustomerOrder {
+    pub name: String,
+    pub created_at: String,
+    pub display_financial_status: Option<String>,
+    #[serde(default)]
+    pub cancelled_at: Option<String>,
+    pub current_total_price_set: MoneyBag,
+    pub line_items: crate::common::types::Connection<CustomerOrderLineItem>,
+    #[serde(default)]
+    pub subscription_contracts: Option<SubscriptionContracts>,
+}
+
+#[derive(serde::Deserialize, Debug, Clone)]
+pub struct CustomerOrderLineItem {
+    #[serde(default)]
+    pub title: Option<String>,
+    #[serde(default)]
+    pub quantity: i64,
+}
+
+#[derive(serde::Deserialize, Debug, Clone)]
+pub struct SubscriptionContracts {
+    #[serde(default)]
+    pub nodes: Vec<crate::common::types::Node>,
+}
+
 #[cfg(test)]
 mod graphql_shape_tests {
     use super::*;
@@ -626,5 +659,77 @@ mod graphql_shape_tests {
                 .amount,
             "1.00"
         );
+    }
+
+    #[test]
+    fn customer_orders_parses_a_page_with_end_cursor() {
+        let resp: CustomerOrdersResp = serde_json::from_str(
+            r##"{"orders":{
+                "nodes":[{
+                    "name":"#1003",
+                    "createdAt":"2026-01-03T00:00:00Z",
+                    "displayFinancialStatus":"PAID",
+                    "cancelledAt":null,
+                    "currentTotalPriceSet":{"shopMoney":{"amount":"250.00","currencyCode":"INR"}},
+                    "lineItems":{
+                        "nodes":[{"title":"Tee","quantity":2},{"title":null,"quantity":1}],
+                        "pageInfo":{"hasNextPage":false}
+                    },
+                    "subscriptionContracts":{"nodes":[{"id":"gid://shopify/SubscriptionContract/9"}]}
+                }],
+                "pageInfo":{"hasNextPage":true,"endCursor":"eyJsYXN0X2lkIjo5MDAxfQ=="}
+            }}"##,
+        )
+        .expect("customer orders page must parse the shape Shopify sends");
+
+        assert!(resp.orders.page_info.has_next_page);
+        assert_eq!(
+            resp.orders.page_info.end_cursor.as_deref(),
+            Some("eyJsYXN0X2lkIjo5MDAxfQ==")
+        );
+
+        let order = &resp.orders.nodes[0];
+        assert_eq!(order.name, "#1003");
+        assert_eq!(order.display_financial_status.as_deref(), Some("PAID"));
+        assert!(order.cancelled_at.is_none());
+        assert_eq!(order.current_total_price_set.shop_money.amount, "250.00");
+        assert_eq!(
+            order.current_total_price_set.shop_money.currency_code,
+            "INR"
+        );
+        assert_eq!(order.line_items.nodes.len(), 2);
+        assert_eq!(order.line_items.nodes[1].title, None);
+        assert!(!order.line_items.page_info.has_next_page);
+        assert_eq!(
+            order.subscription_contracts.as_ref().map(|c| c.nodes.len()),
+            Some(1)
+        );
+    }
+
+    #[test]
+    fn customer_orders_parses_without_subscriptions_or_cancelled_at() {
+        let resp: CustomerOrdersResp = serde_json::from_str(
+            r##"{"orders":{
+                "nodes":[{
+                    "name":"#1001",
+                    "createdAt":"2026-01-01T00:00:00Z",
+                    "displayFinancialStatus":null,
+                    "currentTotalPriceSet":{"shopMoney":{"amount":"10.00","currencyCode":"INR"}},
+                    "lineItems":{"nodes":[],"pageInfo":{"hasNextPage":false}},
+                    "subscriptionContracts":{"nodes":[]}
+                }],
+                "pageInfo":{"hasNextPage":false}
+            }}"##,
+        )
+        .expect("a plain order missing optional fields must still parse");
+
+        let order = &resp.orders.nodes[0];
+        assert!(order.cancelled_at.is_none());
+        assert!(order.display_financial_status.is_none());
+        assert_eq!(
+            order.subscription_contracts.as_ref().map(|c| c.nodes.len()),
+            Some(0)
+        );
+        assert!(!resp.orders.page_info.has_next_page);
     }
 }
