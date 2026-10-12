@@ -344,6 +344,12 @@ pub struct DiscountAllocation {
 
 #[derive(serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
+pub struct TaxLine {
+    pub price_set: MoneyBag,
+}
+
+#[derive(serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct MoneyBag {
     pub shop_money: MoneyV2,
     #[serde(default)]
@@ -503,6 +509,8 @@ pub struct OrderDetailLineItem {
     pub total_discount_set: Option<MoneyBag>,
     #[serde(default)]
     pub discount_allocations: Vec<DiscountAllocation>,
+    #[serde(default)]
+    pub tax_lines: Vec<TaxLine>,
 }
 
 #[derive(serde::Deserialize, Debug, Clone)]
@@ -593,7 +601,8 @@ mod graphql_shape_tests {
                         "variant":{"id":"gid://shopify/ProductVariant/11"},
                         "originalUnitPriceSet":{"shopMoney":{"amount":"50.00","currencyCode":"INR"}},
                         "totalDiscountSet":{"shopMoney":{"amount":"2.00","currencyCode":"INR"}},
-                        "discountAllocations":[{"allocatedAmountSet":{"shopMoney":{"amount":"2.00","currencyCode":"INR"}}}]
+                        "discountAllocations":[{"allocatedAmountSet":{"shopMoney":{"amount":"2.00","currencyCode":"INR"}}}],
+                        "taxLines":[{"priceSet":{"shopMoney":{"amount":"3.60","currencyCode":"INR"}}}]
                     }],
                     "pageInfo":{"hasNextPage":false}
                 }
@@ -634,6 +643,13 @@ mod graphql_shape_tests {
             Some("gid://shopify/LineItem/5")
         );
         assert_eq!(order.line_items.nodes[0].sku.as_deref(), Some("TEE-M"));
+        assert_eq!(
+            order.line_items.nodes[0].tax_lines[0]
+                .price_set
+                .shop_money
+                .amount,
+            "3.60"
+        );
         let product = order.line_items.nodes[0].product.as_ref().expect("product");
         assert_eq!(product.product_type.as_deref(), Some("INJK"));
         assert_eq!(

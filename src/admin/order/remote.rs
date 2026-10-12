@@ -252,6 +252,7 @@ const ORDER_DETAIL_FIELDS: &str = r#"
             originalUnitPriceSet { shopMoney { amount currencyCode } }
             totalDiscountSet { shopMoney { amount currencyCode } }
             discountAllocations { allocatedAmountSet { shopMoney { amount currencyCode } } }
+            taxLines { priceSet { shopMoney { amount currencyCode } } }
         }
         pageInfo { hasNextPage }
     }
