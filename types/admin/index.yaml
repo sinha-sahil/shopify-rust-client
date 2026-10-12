@@ -11,3 +11,9 @@ groupedTypes:
 
   Theme:
     $ref: './types/admin/theme.yaml#/Theme'
+
+  Locale:
+    $ref: './types/admin/locale.yaml#/Locale'
+
+  File:
+    $ref: './types/admin/file.yaml#/File'

@@ -26,6 +26,8 @@ pub struct ShopifyClient {
     pub bulk_operation: admin::bulk_operation::BulkOperation,
     pub theme: admin::theme::ThemeService,
     pub access_scope: admin::access_scope::AccessScope,
+    pub locale: admin::locale::LocaleService,
+    pub file: admin::file::FileService,
 }
 
 impl ShopifyClient {
@@ -62,7 +64,9 @@ impl ShopifyClient {
                 admin::storefront_access_token::StorefrontAccessToken::with_ctx(ctx.clone()),
             bulk_operation: admin::bulk_operation::BulkOperation::with_ctx(ctx.clone()),
             theme: admin::theme::ThemeService::with_ctx(ctx.clone()),
-            access_scope: admin::access_scope::AccessScope::with_ctx(ctx),
+            access_scope: admin::access_scope::AccessScope::with_ctx(ctx.clone()),
+            locale: admin::locale::LocaleService::with_ctx(ctx.clone()),
+            file: admin::file::FileService::with_ctx(ctx),
         }
     }
 }

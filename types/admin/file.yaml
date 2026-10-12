@@ -1,0 +1,146 @@
+# File upload types for Shopify Admin API: a staged upload, then fileCreate.
+# Non-top file - must use full paths for all references.
+
+File:
+  StagedUploadInput:
+    type: object
+    description: 'One file to upload to Shopify staging'
+    required:
+      - filename
+      - mimeType
+      - resource
+      - httpMethod
+    properties:
+      filename:
+        type: string
+        example: badge.png
+      mimeType:
+        type: string
+        example: image/png
+      resource:
+        type: string
+        description: 'StagedUploadTargetGenerateUploadResource on the wire, such as IMAGE or FILE'
+        example: IMAGE
+      httpMethod:
+        type: string
+        description: 'POST or PUT'
+        example: POST
+      fileSize:
+        type: string
+        description: 'Bytes, as a string; required for VIDEO and MODEL_3D'
+
+  StagedUploadParameter:
+    type: object
+    required:
+      - name
+      - value
+    properties:
+      name:
+        type: string
+      value:
+        type: string
+
+  StagedTarget:
+    type: object
+    description: 'Where to send the file, and the form fields to send with it'
+    required:
+      - url
+      - resourceUrl
+      - parameters
+    properties:
+      url:
+        type: string
+      resourceUrl:
+        type: string
+        description: 'Passed to fileCreate as originalSource once the file is uploaded'
+      parameters:
+        type: array
+        items:
+          $ref: './types/admin/file.yaml#/File/StagedUploadParameter'
+
+  StagedUploadsCreatePayload:
+    type: object
+    required:
+      - userErrors
+    properties:
+      stagedTargets:
+        type: array
+        items:
+          $ref: './types/admin/file.yaml#/File/StagedTarget'
+      userErrors:
+        type: array
+        items:
+          $ref: './types/admin/common.yaml#/Common/UserError'
+
+  StagedUploadsCreateResp:
+    type: object
+    required:
+      - stagedUploadsCreate
+    properties:
+      stagedUploadsCreate:
+        $ref: './types/admin/file.yaml#/File/StagedUploadsCreatePayload'
+
+  FileCreateInput:
+    type: object
+    description: 'A file to add to Shopify Files from a staged upload or a URL'
+    required:
+      - originalSource
+      - contentType
+    properties:
+      originalSource:
+        type: string
+      contentType:
+        type: string
+        description: 'FileContentType on the wire, such as IMAGE or FILE'
+        example: IMAGE
+      alt:
+        type: string
+
+  FileImage:
+    type: object
+    properties:
+      url:
+        type: string
+
+  CreatedFile:
+    type: object
+    description: 'A file in Shopify Files; image is set once a MediaImage is READY'
+    required:
+      - id
+      - fileStatus
+    properties:
+      id:
+        type: string
+      fileStatus:
+        type: string
+        description: 'UPLOADED, PROCESSING, READY or FAILED'
+      image:
+        $ref: './types/admin/file.yaml#/File/FileImage'
+
+  FileCreatePayload:
+    type: object
+    required:
+      - userErrors
+    properties:
+      files:
+        type: array
+        items:
+          $ref: './types/admin/file.yaml#/File/CreatedFile'
+      userErrors:
+        type: array
+        items:
+          $ref: './types/admin/common.yaml#/Common/UserError'
+
+  FileCreateResp:
+    type: object
+    required:
+      - fileCreate
+    properties:
+      fileCreate:
+        $ref: './types/admin/file.yaml#/File/FileCreatePayload'
+
+  GetFileResp:
+    type: object
+    properties:
+      node:
+        $ref: './types/admin/file.yaml#/File/CreatedFile'
