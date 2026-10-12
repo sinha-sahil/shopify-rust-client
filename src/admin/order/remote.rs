@@ -321,6 +321,7 @@ const CUSTOMER_ORDERS_QUERY: &str = r#"
             nodes {
                 name
                 createdAt
+                email
                 displayFinancialStatus
                 cancelledAt
                 currentTotalPriceSet { shopMoney { amount currencyCode } }

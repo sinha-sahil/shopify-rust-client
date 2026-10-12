@@ -518,6 +518,8 @@ pub struct CustomerOrder {
     pub display_financial_status: Option<String>,
     #[serde(default)]
     pub cancelled_at: Option<String>,
+    #[serde(default)]
+    pub email: Option<String>,
     pub current_total_price_set: MoneyBag,
     pub line_items: crate::common::types::Connection<CustomerOrderLineItem>,
     #[serde(default)]
@@ -668,6 +670,7 @@ mod graphql_shape_tests {
                 "nodes":[{
                     "name":"#1003",
                     "createdAt":"2026-01-03T00:00:00Z",
+                    "email":"user@example.com",
                     "displayFinancialStatus":"PAID",
                     "cancelledAt":null,
                     "currentTotalPriceSet":{"shopMoney":{"amount":"250.00","currencyCode":"INR"}},
@@ -690,6 +693,7 @@ mod graphql_shape_tests {
 
         let order = &resp.orders.nodes[0];
         assert_eq!(order.name, "#1003");
+        assert_eq!(order.email.as_deref(), Some("user@example.com"));
         assert_eq!(order.display_financial_status.as_deref(), Some("PAID"));
         assert!(order.cancelled_at.is_none());
         assert_eq!(order.current_total_price_set.shop_money.amount, "250.00");
@@ -725,6 +729,7 @@ mod graphql_shape_tests {
 
         let order = &resp.orders.nodes[0];
         assert!(order.cancelled_at.is_none());
+        assert!(order.email.is_none());
         assert!(order.display_financial_status.is_none());
         assert_eq!(
             order.subscription_contracts.as_ref().map(|c| c.nodes.len()),
