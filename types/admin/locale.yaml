@@ -1,0 +1,36 @@
+# Shop locale types for Shopify Admin API.
+# Non-top file - must use full paths for all references.
+
+Locale:
+  ShopLocale:
+    type: object
+    description: 'A language the shop has added'
+    required:
+      - locale
+      - name
+      - primary
+      - published
+    properties:
+      locale:
+        type: string
+        description: 'ISO code, such as en or pt-BR'
+        example: hi
+      name:
+        type: string
+        example: Hindi
+      primary:
+        type: boolean
+        description: 'The shop default language'
+      published:
+        type: boolean
+        description: 'Shown to customers on the storefront'
+
+  ListShopLocalesResp:
+    type: object
+    required:
+      - shopLocales
+    properties:
+      shopLocales:
+        type: array
+        items:
+          $ref: './types/admin/locale.yaml#/Locale/ShopLocale'
