@@ -150,6 +150,24 @@ const GET_PRODUCT_RECOMMENDATIONS: &str = r#"
   }
 "#;
 
+const GET_PRODUCT_VARIANTS: &str = r#"
+  query GetProductVariants($ids: [ID!]!) {
+    nodes(ids: $ids) {
+      ... on ProductVariant {
+        ...ProductVariantFields
+        product {
+          id
+          handle
+          title
+          featuredImage {
+            ...ImageFields
+          }
+        }
+      }
+    }
+  }
+"#;
+
 pub fn get_product_by_id() -> &'static str {
     static Q: OnceLock<String> = OnceLock::new();
     Q.get_or_init(|| {
@@ -201,6 +219,19 @@ pub fn get_product_recommendations() -> &'static str {
             PRODUCT_VARIANT_FRAGMENT,
             PRODUCT_FRAGMENT,
             GET_PRODUCT_RECOMMENDATIONS,
+        ]
+        .concat()
+    })
+}
+
+pub fn get_product_variants() -> &'static str {
+    static Q: OnceLock<String> = OnceLock::new();
+    Q.get_or_init(|| {
+        [
+            MONEY_FRAGMENT,
+            IMAGE_FRAGMENT,
+            PRODUCT_VARIANT_FRAGMENT,
+            GET_PRODUCT_VARIANTS,
         ]
         .concat()
     })
