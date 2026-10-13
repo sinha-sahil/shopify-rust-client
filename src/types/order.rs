@@ -530,8 +530,6 @@ pub struct CustomerOrder {
     pub email: Option<String>,
     pub current_total_price_set: MoneyBag,
     pub line_items: crate::common::types::Connection<CustomerOrderLineItem>,
-    #[serde(default)]
-    pub subscription_contracts: Option<SubscriptionContracts>,
 }
 
 #[derive(serde::Deserialize, Debug, Clone)]
@@ -540,12 +538,15 @@ pub struct CustomerOrderLineItem {
     pub title: Option<String>,
     #[serde(default)]
     pub quantity: i64,
+    #[serde(default, rename = "sellingPlan")]
+    pub selling_plan: Option<SellingPlan>,
+    #[serde(default)]
+    pub contract: Option<crate::common::types::Node>,
 }
 
 #[derive(serde::Deserialize, Debug, Clone)]
-pub struct SubscriptionContracts {
-    #[serde(default)]
-    pub nodes: Vec<crate::common::types::Node>,
+pub struct SellingPlan {
+    pub name: String,
 }
 
 #[cfg(test)]
@@ -691,10 +692,9 @@ mod graphql_shape_tests {
                     "cancelledAt":null,
                     "currentTotalPriceSet":{"shopMoney":{"amount":"250.00","currencyCode":"INR"}},
                     "lineItems":{
-                        "nodes":[{"title":"Tee","quantity":2},{"title":null,"quantity":1}],
+                        "nodes":[{"title":"Tee","quantity":2,"sellingPlan":{"name":"Deliver every month"},"contract":{"id":"gid://shopify/SubscriptionContract/9"}},{"title":null,"quantity":1}],
                         "pageInfo":{"hasNextPage":false}
-                    },
-                    "subscriptionContracts":{"nodes":[{"id":"gid://shopify/SubscriptionContract/9"}]}
+                    }
                 }],
                 "pageInfo":{"hasNextPage":true,"endCursor":"eyJsYXN0X2lkIjo5MDAxfQ=="}
             }}"##,
@@ -721,9 +721,21 @@ mod graphql_shape_tests {
         assert_eq!(order.line_items.nodes[1].title, None);
         assert!(!order.line_items.page_info.has_next_page);
         assert_eq!(
-            order.subscription_contracts.as_ref().map(|c| c.nodes.len()),
-            Some(1)
+            order.line_items.nodes[0]
+                .selling_plan
+                .as_ref()
+                .map(|p| p.name.as_str()),
+            Some("Deliver every month")
         );
+        assert!(order.line_items.nodes[1].selling_plan.is_none());
+        assert_eq!(
+            order.line_items.nodes[0]
+                .contract
+                .as_ref()
+                .map(|c| c.id.as_str()),
+            Some("gid://shopify/SubscriptionContract/9")
+        );
+        assert!(order.line_items.nodes[1].contract.is_none());
     }
 
     #[test]
@@ -735,8 +747,7 @@ mod graphql_shape_tests {
                     "createdAt":"2026-01-01T00:00:00Z",
                     "displayFinancialStatus":null,
                     "currentTotalPriceSet":{"shopMoney":{"amount":"10.00","currencyCode":"INR"}},
-                    "lineItems":{"nodes":[],"pageInfo":{"hasNextPage":false}},
-                    "subscriptionContracts":{"nodes":[]}
+                    "lineItems":{"nodes":[{"title":"Soap","quantity":1,"sellingPlan":{"name":"Pre-order, ships May"}}],"pageInfo":{"hasNextPage":false}}
                 }],
                 "pageInfo":{"hasNextPage":false}
             }}"##,
@@ -747,10 +758,8 @@ mod graphql_shape_tests {
         assert!(order.cancelled_at.is_none());
         assert!(order.email.is_none());
         assert!(order.display_financial_status.is_none());
-        assert_eq!(
-            order.subscription_contracts.as_ref().map(|c| c.nodes.len()),
-            Some(0)
-        );
+        assert!(order.line_items.nodes[0].selling_plan.is_some());
+        assert!(order.line_items.nodes[0].contract.is_none());
         assert!(!resp.orders.page_info.has_next_page);
     }
 }

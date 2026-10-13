@@ -327,11 +327,8 @@ const CUSTOMER_ORDERS_QUERY: &str = r#"
                 cancelledAt
                 currentTotalPriceSet { shopMoney { amount currencyCode } }
                 lineItems(first: $lines) {
-                    nodes { title quantity }
+                    nodes { title quantity sellingPlan { name } contract { id } }
                     pageInfo { hasNextPage }
-                }
-                subscriptionContracts(first: 1) {
-                    nodes { id }
                 }
             }
             pageInfo { hasNextPage endCursor }
