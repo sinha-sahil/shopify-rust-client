@@ -307,12 +307,28 @@ pub struct OrderDiscountsAndTransactions {
 #[serde(rename_all = "camelCase")]
 pub struct OrderTransaction {
     #[serde(default)]
+    pub id: Option<String>,
+    #[serde(default)]
     pub gateway: Option<String>,
     #[serde(default)]
     pub kind: Option<String>,
     #[serde(default)]
     pub status: Option<String>,
+    #[serde(default)]
+    pub parent_transaction: Option<ParentTransaction>,
     pub amount_set: MoneyBag,
+}
+
+#[derive(serde::Deserialize, Debug, Clone)]
+pub struct ParentTransaction {
+    pub id: String,
+}
+
+#[derive(serde::Deserialize, Debug, Clone)]
+pub struct OrderAttribute {
+    pub key: String,
+    #[serde(default)]
+    pub value: Option<String>,
 }
 
 #[derive(serde::Deserialize, Debug, Clone)]
@@ -391,6 +407,8 @@ pub struct OrderDetail {
     pub taxes_included: bool,
     #[serde(default)]
     pub discount_codes: Vec<String>,
+    #[serde(default)]
+    pub custom_attributes: Vec<OrderAttribute>,
     pub cart_discount_amount_set: Option<MoneyBag>,
     pub customer: Option<OrderDetailCustomer>,
     pub shipping_address: Option<OrderDetailAddress>,
@@ -761,5 +779,43 @@ mod graphql_shape_tests {
         assert!(order.line_items.nodes[0].selling_plan.is_some());
         assert!(order.line_items.nodes[0].contract.is_none());
         assert!(!resp.orders.page_info.has_next_page);
+    }
+
+    #[test]
+    fn order_transactions_parse_their_refund_fields() {
+        let transactions: Vec<OrderTransaction> = serde_json::from_str(
+            r##"[
+                {"id":"gid://shopify/OrderTransaction/1","gateway":"Cash on Delivery (COD)","kind":"SALE",
+                 "status":"SUCCESS","parentTransaction":null,
+                 "amountSet":{"shopMoney":{"amount":"100.00","currencyCode":"INR"},
+                              "presentmentMoney":{"amount":"100.00","currencyCode":"INR"}}},
+                {"id":"gid://shopify/OrderTransaction/2","gateway":"Cash on Delivery (COD)","kind":"REFUND",
+                 "status":"SUCCESS",
+                 "parentTransaction":{"id":"gid://shopify/OrderTransaction/1"},
+                 "amountSet":{"shopMoney":{"amount":"40.00","currencyCode":"INR"}}}
+            ]"##,
+        )
+        .expect("transactions must parse");
+
+        assert_eq!(
+            transactions[0].id.as_deref(),
+            Some("gid://shopify/OrderTransaction/1")
+        );
+        assert!(transactions[0].parent_transaction.is_none());
+        assert_eq!(
+            transactions[1]
+                .parent_transaction
+                .as_ref()
+                .map(|parent| parent.id.as_str()),
+            Some("gid://shopify/OrderTransaction/1")
+        );
+        assert_eq!(
+            transactions[0]
+                .amount_set
+                .presentment_money
+                .as_ref()
+                .map(|money| money.currency_code.as_str()),
+            Some("INR")
+        );
     }
 }

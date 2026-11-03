@@ -8,11 +8,11 @@ use crate::{
     common::types::{APIError, RequestCallbacks},
     types::returns::{
         ExchangeLineItemInput, ProcessableReturnResp, RefundMethodAllocation, RemoveFromReturnResp,
-        ReturnApproveRequestResp, ReturnCancelResp, ReturnCreateLineItemInput, ReturnCreateResp,
-        ReturnDeclineReason, ReturnDeclineRequestResp, ReturnFinancialOutcomeResp,
-        ReturnLineItemInput, ReturnLineQuantityInput, ReturnProcessInput, ReturnProcessResp,
-        ReturnReasonDefinitionsResp, ReturnRefundsResp, ReturnRequestResp, ReturnStatusResp,
-        ReturnableFulfillmentResp, ReturnableFulfillmentsResp,
+        ReturnApproveRequestResp, ReturnCancelResp, ReturnCloseResp, ReturnCreateLineItemInput,
+        ReturnCreateResp, ReturnDeclineReason, ReturnDeclineRequestResp,
+        ReturnFinancialOutcomeResp, ReturnLineItemInput, ReturnLineQuantityInput,
+        ReturnProcessInput, ReturnProcessResp, ReturnReasonDefinitionsResp, ReturnRefundsResp,
+        ReturnRequestResp, ReturnStatusResp, ReturnableFulfillmentResp, ReturnableFulfillmentsResp,
     },
 };
 
@@ -71,6 +71,10 @@ impl Returns {
 
     pub async fn cancel(&self, return_id: &str) -> Result<ReturnCancelResp, APIError> {
         remote::cancel_return(&self.ctx, return_id).await
+    }
+
+    pub async fn close(&self, return_id: &str) -> Result<ReturnCloseResp, APIError> {
+        remote::close_return(&self.ctx, return_id).await
     }
 
     pub async fn remove_lines(

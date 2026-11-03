@@ -3,11 +3,11 @@ use crate::{
     common::{http::execute_graphql, types::APIError},
     types::returns::{
         ExchangeLineItemInput, ProcessableReturnResp, RefundMethodAllocation, RemoveFromReturnResp,
-        ReturnApproveRequestResp, ReturnCancelResp, ReturnCreateLineItemInput, ReturnCreateResp,
-        ReturnDeclineReason, ReturnDeclineRequestResp, ReturnFinancialOutcomeResp,
-        ReturnLineItemInput, ReturnLineQuantityInput, ReturnProcessInput, ReturnProcessResp,
-        ReturnReasonDefinitionsResp, ReturnRefundsResp, ReturnRequestResp, ReturnStatusResp,
-        ReturnableFulfillmentResp, ReturnableFulfillmentsResp,
+        ReturnApproveRequestResp, ReturnCancelResp, ReturnCloseResp, ReturnCreateLineItemInput,
+        ReturnCreateResp, ReturnDeclineReason, ReturnDeclineRequestResp,
+        ReturnFinancialOutcomeResp, ReturnLineItemInput, ReturnLineQuantityInput,
+        ReturnProcessInput, ReturnProcessResp, ReturnReasonDefinitionsResp, ReturnRefundsResp,
+        ReturnRequestResp, ReturnStatusResp, ReturnableFulfillmentResp, ReturnableFulfillmentsResp,
     },
 };
 
@@ -142,6 +142,29 @@ pub async fn cancel_return(
     let query = r#"
         mutation returnCancel($id: ID!) {
             returnCancel(id: $id) {
+                return {
+                    id
+                    status
+                }
+                userErrors {
+                    field
+                    message
+                    code
+                }
+            }
+        }
+    "#;
+
+    execute_graphql(ctx, query, json!({ "id": return_id })).await
+}
+
+pub async fn close_return(
+    ctx: &ServiceContext,
+    return_id: &str,
+) -> Result<ReturnCloseResp, APIError> {
+    let query = r#"
+        mutation returnClose($id: ID!) {
+            returnClose(id: $id) {
                 return {
                     id
                     status
@@ -314,13 +337,14 @@ pub async fn get_processable_return(
                         id
                         processableQuantity
                         ... on ReturnLineItem {
+                            processedQuantity
                             fulfillmentLineItem { id lineItem { id } }
                         }
                     }
                     pageInfo { hasNextPage endCursor }
                 }
                 exchangeLineItems(first: $lines) {
-                    nodes { id processableQuantity variantId }
+                    nodes { id processableQuantity processedQuantity variantId }
                     pageInfo { hasNextPage endCursor }
                 }
             }
