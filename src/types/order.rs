@@ -547,6 +547,8 @@ pub struct CustomerOrderLineItem {
 #[derive(serde::Deserialize, Debug, Clone)]
 pub struct SellingPlan {
     pub name: String,
+    #[serde(default, rename = "sellingPlanId")]
+    pub selling_plan_id: Option<String>,
 }
 
 #[cfg(test)]
@@ -692,7 +694,7 @@ mod graphql_shape_tests {
                     "cancelledAt":null,
                     "currentTotalPriceSet":{"shopMoney":{"amount":"250.00","currencyCode":"INR"}},
                     "lineItems":{
-                        "nodes":[{"title":"Tee","quantity":2,"sellingPlan":{"name":"Deliver every month"},"contract":{"id":"gid://shopify/SubscriptionContract/9"}},{"title":null,"quantity":1}],
+                        "nodes":[{"title":"Tee","quantity":2,"sellingPlan":{"sellingPlanId":"gid://shopify/SellingPlan/7","name":"Deliver every month"},"contract":{"id":"gid://shopify/SubscriptionContract/9"}},{"title":null,"quantity":1}],
                         "pageInfo":{"hasNextPage":false}
                     }
                 }],
@@ -727,6 +729,13 @@ mod graphql_shape_tests {
                 .map(|p| p.name.as_str()),
             Some("Deliver every month")
         );
+        assert_eq!(
+            order.line_items.nodes[0]
+                .selling_plan
+                .as_ref()
+                .and_then(|p| p.selling_plan_id.as_deref()),
+            Some("gid://shopify/SellingPlan/7")
+        );
         assert!(order.line_items.nodes[1].selling_plan.is_none());
         assert_eq!(
             order.line_items.nodes[0]
@@ -758,7 +767,14 @@ mod graphql_shape_tests {
         assert!(order.cancelled_at.is_none());
         assert!(order.email.is_none());
         assert!(order.display_financial_status.is_none());
-        assert!(order.line_items.nodes[0].selling_plan.is_some());
+        let plan = order.line_items.nodes[0]
+            .selling_plan
+            .as_ref()
+            .expect("the selling plan parses without an id");
+        assert!(
+            plan.selling_plan_id.is_none(),
+            "a query that omits sellingPlanId still parses"
+        );
         assert!(order.line_items.nodes[0].contract.is_none());
         assert!(!resp.orders.page_info.has_next_page);
     }
