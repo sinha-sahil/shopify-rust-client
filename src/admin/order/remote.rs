@@ -210,6 +210,7 @@ const ORDER_DETAIL_FIELDS: &str = r#"
     displayFinancialStatus
     taxesIncluded
     discountCodes
+    customAttributes { key value }
     cartDiscountAmountSet { shopMoney { amount currencyCode } }
     customer {
         id
@@ -223,10 +224,15 @@ const ORDER_DETAIL_FIELDS: &str = r#"
         city province country countryCodeV2 zip
     }
     transactions {
+        id
         gateway
         kind
         status
-        amountSet { shopMoney { amount currencyCode } }
+        parentTransaction { id }
+        amountSet {
+            shopMoney { amount currencyCode }
+            presentmentMoney { amount currencyCode }
+        }
     }
     fulfillments(first: $fulfillments) {
         status

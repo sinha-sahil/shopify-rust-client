@@ -215,6 +215,12 @@ pub struct ReturnCancelResp {
 
 #[derive(serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
+pub struct ReturnCloseResp {
+    pub return_close: ReturnPayload,
+}
+
+#[derive(serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct RemoveFromReturnResp {
     pub remove_from_return: ReturnPayload,
 }
@@ -297,6 +303,8 @@ pub struct ProcessableReturn {
 pub struct ProcessableReturnLine {
     pub id: String,
     pub processable_quantity: i32,
+    #[serde(default)]
+    pub processed_quantity: i32,
     pub fulfillment_line_item: Option<FulfillmentLineItemRef>,
 }
 
@@ -305,12 +313,15 @@ pub struct ProcessableReturnLine {
 pub struct ProcessableExchangeLine {
     pub id: String,
     pub processable_quantity: i32,
+    #[serde(default)]
+    pub processed_quantity: i32,
     pub variant_id: Option<String>,
 }
 
 pub trait ProcessableLine {
     fn id(&self) -> &str;
     fn processable_quantity(&self) -> i32;
+    fn processed_quantity(&self) -> i32;
 
     fn processable(&self) -> Option<ReturnLineQuantityInput> {
         let quantity = self.processable_quantity();
@@ -329,6 +340,9 @@ impl ProcessableLine for ProcessableReturnLine {
     fn processable_quantity(&self) -> i32 {
         self.processable_quantity
     }
+    fn processed_quantity(&self) -> i32 {
+        self.processed_quantity
+    }
 }
 
 impl ProcessableLine for ProcessableExchangeLine {
@@ -338,6 +352,9 @@ impl ProcessableLine for ProcessableExchangeLine {
 
     fn processable_quantity(&self) -> i32 {
         self.processable_quantity
+    }
+    fn processed_quantity(&self) -> i32 {
+        self.processed_quantity
     }
 }
 
@@ -594,6 +611,7 @@ mod graphql_shape_tests {
                 "returnLineItems": {
                     "nodes": [
                         { "id": "gid://shopify/ReturnLineItem/1", "processableQuantity": 2,
+                          "processedQuantity": 1,
                           "fulfillmentLineItem": { "id": "gid://shopify/FulfillmentLineItem/7",
                                                    "lineItem": { "id": "gid://shopify/LineItem/5" } } },
                         { "id": "gid://shopify/UnverifiedReturnLineItem/2", "processableQuantity": 0 }
@@ -613,6 +631,9 @@ mod graphql_shape_tests {
         assert!(found.return_line_items.nodes[1]
             .fulfillment_line_item
             .is_none());
+        assert_eq!(found.return_line_items.nodes[0].processed_quantity(), 1);
+        assert_eq!(found.return_line_items.nodes[1].processed_quantity(), 0);
+        assert_eq!(found.exchange_line_items.nodes[0].processed_quantity(), 0);
         let returns: Vec<ReturnLineQuantityInput> = found
             .return_line_items
             .nodes
