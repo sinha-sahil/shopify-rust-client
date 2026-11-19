@@ -1,4 +1,4 @@
-use crate::common::types::PageInfo;
+use crate::common::types::{Connection, PageInfo};
 
 // region: Response Types
 
@@ -155,7 +155,7 @@ pub struct DiscountAutomaticApp {
     pub combines_with: DiscountCombinesWith,
     pub applies_on_one_time_purchase: bool,
     pub applies_on_subscription: bool,
-    pub recurring_cycle_limit: i32,
+    pub recurring_cycle_limit: Option<i32>,
 }
 
 #[derive(serde::Deserialize, Debug)]
@@ -391,6 +391,125 @@ pub struct Metafield {
 }
 
 #[derive(serde::Deserialize, Debug)]
+pub struct CodeDiscountNodeByCodeResp {
+    #[serde(rename = "codeDiscountNodeByCode")]
+    pub code_discount_node_by_code: Option<CodeDiscountNode>,
+}
+
+#[derive(serde::Deserialize, Debug)]
+pub struct CodeDiscountNode {
+    pub id: String,
+    #[serde(rename = "codeDiscount")]
+    pub code_discount: CodeDiscount,
+}
+
+/// Shopify's `DiscountCode` union: the discount behind a code.
+#[derive(serde::Deserialize, Debug)]
+#[serde(tag = "__typename")]
+pub enum CodeDiscount {
+    DiscountCodeApp(DiscountCodeAppDetails),
+    DiscountCodeBasic(DiscountBasicDetails),
+    DiscountCodeBxgy(DiscountBxgyDetails),
+    DiscountCodeFreeShipping(DiscountFreeShippingDetails),
+}
+
+#[derive(serde::Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct DiscountCodeAppCreateResp {
+    pub discount_code_app_create: DiscountCodeAppPayload,
+}
+
+#[derive(serde::Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct DiscountCodeAppUpdateResp {
+    pub discount_code_app_update: DiscountCodeAppPayload,
+}
+
+#[derive(serde::Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct DiscountCodeAppPayload {
+    pub code_app_discount: Option<DiscountCodeApp>,
+    pub user_errors: Vec<DiscountUserError>,
+}
+
+#[derive(serde::Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct DiscountCodeApp {
+    pub discount_id: String,
+    pub title: String,
+    pub status: String,
+}
+
+#[derive(serde::Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct DiscountAutomaticDeleteResp {
+    pub discount_automatic_delete: DiscountUserErrorsPayload,
+}
+
+#[derive(serde::Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct DiscountCodeDeleteResp {
+    pub discount_code_delete: DiscountUserErrorsPayload,
+}
+
+#[derive(serde::Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct DiscountAutomaticActivateResp {
+    pub discount_automatic_activate: DiscountUserErrorsPayload,
+}
+
+#[derive(serde::Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct DiscountAutomaticDeactivateResp {
+    pub discount_automatic_deactivate: DiscountUserErrorsPayload,
+}
+
+#[derive(serde::Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct DiscountCodeActivateResp {
+    pub discount_code_activate: DiscountUserErrorsPayload,
+}
+
+#[derive(serde::Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct DiscountCodeDeactivateResp {
+    pub discount_code_deactivate: DiscountUserErrorsPayload,
+}
+
+#[derive(serde::Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct NativeDiscountNodesResp {
+    pub discount_nodes: Connection<NativeDiscountNode>,
+}
+
+#[derive(serde::Deserialize, Debug)]
+pub struct NativeDiscountNode {
+    pub id: String,
+    pub discount: NativeDiscount,
+}
+
+/// A discount defined in Shopify itself (not by an app). App discounts read as `Other`.
+#[derive(serde::Deserialize, Debug)]
+#[serde(tag = "__typename")]
+pub enum NativeDiscount {
+    DiscountAutomaticBasic(DiscountBasicDetails),
+    DiscountCodeBasic(DiscountBasicDetails),
+    DiscountAutomaticBxgy(DiscountBxgyDetails),
+    DiscountCodeBxgy(DiscountBxgyDetails),
+    DiscountAutomaticFreeShipping(DiscountFreeShippingDetails),
+    DiscountCodeFreeShipping(DiscountFreeShippingDetails),
+    #[serde(other)]
+    Other,
+}
+
+/// A discount mutation payload read only for its user errors.
+#[derive(serde::Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct DiscountUserErrorsPayload {
+    pub user_errors: Vec<DiscountUserError>,
+}
+
+#[derive(serde::Deserialize, Debug)]
 pub struct GetDiscountNodeResp {
     #[serde(rename = "discountNode")]
     pub discount_node: Option<DiscountNodeWithMetafields>,
@@ -471,6 +590,41 @@ pub struct DiscountAutomaticAppUpdateInput {
     pub applies_on_one_time_purchase: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub recurring_cycle_limit: Option<i32>,
+}
+
+/// Shopify's `DiscountCodeAppInput` for `discountCodeAppCreate`.
+#[derive(serde::Serialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct DiscountCodeAppInput {
+    pub title: String,
+    pub code: String,
+    pub function_id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub starts_at: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ends_at: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub combines_with: Option<DiscountCombinesWithInput>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub discount_classes: Option<Vec<DiscountClass>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub metafields: Option<Vec<MetafieldInput>>,
+}
+
+#[derive(serde::Serialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct DiscountCodeAppUpdateInput {
+    pub id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub title: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub starts_at: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ends_at: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub combines_with: Option<DiscountCombinesWithInput>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub discount_classes: Option<Vec<DiscountClass>>,
 }
 
 #[derive(serde::Serialize, Debug, Clone)]
@@ -607,6 +761,84 @@ impl DiscountAutomaticAppInput {
 
     pub fn with_recurring_cycle_limit(mut self, limit: i32) -> Self {
         self.recurring_cycle_limit = Some(limit);
+        self
+    }
+}
+
+impl DiscountCodeAppInput {
+    pub fn new(title: String, code: String, function_id: String) -> Self {
+        DiscountCodeAppInput {
+            title,
+            code,
+            function_id,
+            starts_at: None,
+            ends_at: None,
+            combines_with: None,
+            discount_classes: None,
+            metafields: None,
+        }
+    }
+
+    pub fn with_starts_at(mut self, starts_at: String) -> Self {
+        self.starts_at = Some(starts_at);
+        self
+    }
+
+    pub fn with_ends_at(mut self, ends_at: String) -> Self {
+        self.ends_at = Some(ends_at);
+        self
+    }
+
+    pub fn with_combines_with(mut self, combines_with: DiscountCombinesWithInput) -> Self {
+        self.combines_with = Some(combines_with);
+        self
+    }
+
+    pub fn with_discount_classes(mut self, discount_classes: Vec<DiscountClass>) -> Self {
+        self.discount_classes = Some(discount_classes);
+        self
+    }
+
+    pub fn with_metafields(mut self, metafields: Vec<MetafieldInput>) -> Self {
+        self.metafields = Some(metafields);
+        self
+    }
+}
+
+impl DiscountCodeAppUpdateInput {
+    pub fn new(id: String) -> Self {
+        DiscountCodeAppUpdateInput {
+            id,
+            title: None,
+            starts_at: None,
+            ends_at: None,
+            combines_with: None,
+            discount_classes: None,
+        }
+    }
+
+    pub fn with_title(mut self, title: String) -> Self {
+        self.title = Some(title);
+        self
+    }
+
+    pub fn with_starts_at(mut self, starts_at: String) -> Self {
+        self.starts_at = Some(starts_at);
+        self
+    }
+
+    pub fn with_ends_at(mut self, ends_at: String) -> Self {
+        self.ends_at = Some(ends_at);
+        self
+    }
+
+    pub fn with_combines_with(mut self, combines_with: DiscountCombinesWithInput) -> Self {
+        self.combines_with = Some(combines_with);
+        self
+    }
+
+    pub fn with_discount_classes(mut self, discount_classes: Vec<DiscountClass>) -> Self {
+        self.discount_classes = Some(discount_classes);
         self
     }
 }

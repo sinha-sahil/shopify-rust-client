@@ -2,9 +2,12 @@ use crate::common::ServiceContext;
 use crate::{
     common::{http::execute_graphql, types::APIError},
     types::discount::{
-        DiscountAutomaticAppCreateResp, DiscountAutomaticAppInput, DiscountAutomaticAppUpdateInput,
-        DiscountAutomaticAppUpdateResp, DiscountNodesResp, GetDiscountMetafieldResp,
-        GetDiscountNodeResp,
+        CodeDiscountNodeByCodeResp, DiscountAutomaticActivateResp, DiscountAutomaticAppCreateResp,
+        DiscountAutomaticAppInput, DiscountAutomaticAppUpdateInput, DiscountAutomaticAppUpdateResp,
+        DiscountAutomaticDeactivateResp, DiscountAutomaticDeleteResp, DiscountCodeActivateResp,
+        DiscountCodeAppCreateResp, DiscountCodeAppInput, DiscountCodeAppUpdateInput,
+        DiscountCodeAppUpdateResp, DiscountCodeDeactivateResp, DiscountCodeDeleteResp,
+        DiscountNodesResp, GetDiscountMetafieldResp, GetDiscountNodeResp, NativeDiscountNodesResp,
     },
 };
 
@@ -826,4 +829,395 @@ pub async fn get_discount_metafield(
     });
 
     execute_graphql(ctx, &query_str, variables).await
+}
+
+pub async fn list_native_discounts(
+    ctx: &ServiceContext,
+    first: i32,
+    after: Option<String>,
+) -> Result<NativeDiscountNodesResp, APIError> {
+    let query = r#"
+        query nativeDiscounts($first: Int!, $after: String, $query: String) {
+            discountNodes(first: $first, after: $after, query: $query) {
+                nodes {
+                    id
+                    discount {
+                        __typename
+                        ... on DiscountAutomaticBasic {
+                            title
+                            status
+                            minimumRequirement {
+                                ... on DiscountMinimumQuantity {
+                                    greaterThanOrEqualToQuantity
+                                }
+                                ... on DiscountMinimumSubtotal {
+                                    greaterThanOrEqualToSubtotal {
+                                        amount
+                                        currencyCode
+                                    }
+                                }
+                            }
+                            customerGets {
+                                value {
+                                    ... on DiscountAmount {
+                                        amount {
+                                            amount
+                                            currencyCode
+                                        }
+                                    }
+                                    ... on DiscountPercentage {
+                                        percentage
+                                    }
+                                    ... on DiscountOnQuantity {
+                                        quantity {
+                                            quantity
+                                        }
+                                        effect {
+                                            ... on DiscountPercentage {
+                                                percentage
+                                            }
+                                            ... on DiscountAmount {
+                                                amount {
+                                                    amount
+                                                    currencyCode
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        ... on DiscountCodeBasic {
+                            title
+                            status
+                            codes(first: 1) {
+                                nodes {
+                                    code
+                                }
+                            }
+                            minimumRequirement {
+                                ... on DiscountMinimumQuantity {
+                                    greaterThanOrEqualToQuantity
+                                }
+                                ... on DiscountMinimumSubtotal {
+                                    greaterThanOrEqualToSubtotal {
+                                        amount
+                                        currencyCode
+                                    }
+                                }
+                            }
+                            customerGets {
+                                value {
+                                    ... on DiscountAmount {
+                                        amount {
+                                            amount
+                                            currencyCode
+                                        }
+                                    }
+                                    ... on DiscountPercentage {
+                                        percentage
+                                    }
+                                    ... on DiscountOnQuantity {
+                                        quantity {
+                                            quantity
+                                        }
+                                        effect {
+                                            ... on DiscountPercentage {
+                                                percentage
+                                            }
+                                            ... on DiscountAmount {
+                                                amount {
+                                                    amount
+                                                    currencyCode
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        ... on DiscountAutomaticBxgy {
+                            title
+                            status
+                        }
+                        ... on DiscountCodeBxgy {
+                            title
+                            status
+                            codes(first: 1) {
+                                nodes {
+                                    code
+                                }
+                            }
+                        }
+                        ... on DiscountAutomaticFreeShipping {
+                            title
+                            status
+                            minimumRequirement {
+                                ... on DiscountMinimumQuantity {
+                                    greaterThanOrEqualToQuantity
+                                }
+                                ... on DiscountMinimumSubtotal {
+                                    greaterThanOrEqualToSubtotal {
+                                        amount
+                                        currencyCode
+                                    }
+                                }
+                            }
+                        }
+                        ... on DiscountCodeFreeShipping {
+                            title
+                            status
+                            codes(first: 1) {
+                                nodes {
+                                    code
+                                }
+                            }
+                            minimumRequirement {
+                                ... on DiscountMinimumQuantity {
+                                    greaterThanOrEqualToQuantity
+                                }
+                                ... on DiscountMinimumSubtotal {
+                                    greaterThanOrEqualToSubtotal {
+                                        amount
+                                        currencyCode
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                pageInfo {
+                    hasNextPage
+                    endCursor
+                }
+            }
+        }
+    "#;
+
+    let variables = json!({
+        "first": first,
+        "after": after,
+        "query": "status:active OR status:scheduled",
+    });
+
+    execute_graphql(ctx, query, variables).await
+}
+
+pub async fn get_code_discount_by_code(
+    ctx: &ServiceContext,
+    code: &str,
+) -> Result<CodeDiscountNodeByCodeResp, APIError> {
+    let query = r#"
+        query codeDiscountNodeByCode($code: String!) {
+            codeDiscountNodeByCode(code: $code) {
+                id
+                codeDiscount {
+                    __typename
+                    ... on DiscountCodeApp {
+                        title
+                        status
+                        appDiscountType {
+                            appKey
+                            functionId
+                            title
+                            description
+                        }
+                    }
+                    ... on DiscountCodeBasic {
+                        title
+                        status
+                    }
+                    ... on DiscountCodeBxgy {
+                        title
+                        status
+                    }
+                    ... on DiscountCodeFreeShipping {
+                        title
+                        status
+                    }
+                }
+            }
+        }
+    "#;
+
+    execute_graphql(ctx, query, json!({ "code": code })).await
+}
+
+pub async fn create_code_app_discount(
+    ctx: &ServiceContext,
+    input: &DiscountCodeAppInput,
+) -> Result<DiscountCodeAppCreateResp, APIError> {
+    let query = r#"
+        mutation discountCodeAppCreate($codeAppDiscount: DiscountCodeAppInput!) {
+            discountCodeAppCreate(codeAppDiscount: $codeAppDiscount) {
+                codeAppDiscount {
+                    discountId
+                    title
+                    status
+                }
+                userErrors {
+                    field
+                    message
+                    code
+                }
+            }
+        }
+    "#;
+
+    execute_graphql(ctx, query, json!({ "codeAppDiscount": input })).await
+}
+
+pub async fn update_code_app_discount(
+    ctx: &ServiceContext,
+    input: &DiscountCodeAppUpdateInput,
+) -> Result<DiscountCodeAppUpdateResp, APIError> {
+    let query = r#"
+        mutation discountCodeAppUpdate($id: ID!, $codeAppDiscount: DiscountCodeAppInput!) {
+            discountCodeAppUpdate(id: $id, codeAppDiscount: $codeAppDiscount) {
+                codeAppDiscount {
+                    discountId
+                    title
+                    status
+                }
+                userErrors {
+                    field
+                    message
+                    code
+                }
+            }
+        }
+    "#;
+
+    let variables = json!({
+        "id": input.id,
+        "codeAppDiscount": {
+            "title": input.title,
+            "startsAt": input.starts_at,
+            "endsAt": input.ends_at,
+            "combinesWith": input.combines_with,
+            "discountClasses": input.discount_classes,
+        }
+    });
+
+    execute_graphql(ctx, query, variables).await
+}
+
+pub async fn delete_automatic_discount(
+    ctx: &ServiceContext,
+    id: &str,
+) -> Result<DiscountAutomaticDeleteResp, APIError> {
+    let query = r#"
+        mutation discountAutomaticDelete($id: ID!) {
+            discountAutomaticDelete(id: $id) {
+                deletedAutomaticDiscountId
+                userErrors {
+                    field
+                    message
+                    code
+                }
+            }
+        }
+    "#;
+
+    execute_graphql(ctx, query, json!({ "id": id })).await
+}
+
+pub async fn delete_code_discount(
+    ctx: &ServiceContext,
+    id: &str,
+) -> Result<DiscountCodeDeleteResp, APIError> {
+    let query = r#"
+        mutation discountCodeDelete($id: ID!) {
+            discountCodeDelete(id: $id) {
+                deletedCodeDiscountId
+                userErrors {
+                    field
+                    message
+                    code
+                }
+            }
+        }
+    "#;
+
+    execute_graphql(ctx, query, json!({ "id": id })).await
+}
+
+pub async fn activate_automatic_discount(
+    ctx: &ServiceContext,
+    id: &str,
+) -> Result<DiscountAutomaticActivateResp, APIError> {
+    let query = r#"
+        mutation discountAutomaticActivate($id: ID!) {
+            discountAutomaticActivate(id: $id) {
+                automaticDiscountNode { id }
+                userErrors {
+                    field
+                    message
+                    code
+                }
+            }
+        }
+    "#;
+
+    execute_graphql(ctx, query, json!({ "id": id })).await
+}
+
+pub async fn deactivate_automatic_discount(
+    ctx: &ServiceContext,
+    id: &str,
+) -> Result<DiscountAutomaticDeactivateResp, APIError> {
+    let query = r#"
+        mutation discountAutomaticDeactivate($id: ID!) {
+            discountAutomaticDeactivate(id: $id) {
+                automaticDiscountNode { id }
+                userErrors {
+                    field
+                    message
+                    code
+                }
+            }
+        }
+    "#;
+
+    execute_graphql(ctx, query, json!({ "id": id })).await
+}
+
+pub async fn activate_code_discount(
+    ctx: &ServiceContext,
+    id: &str,
+) -> Result<DiscountCodeActivateResp, APIError> {
+    let query = r#"
+        mutation discountCodeActivate($id: ID!) {
+            discountCodeActivate(id: $id) {
+                codeDiscountNode { id }
+                userErrors {
+                    field
+                    message
+                    code
+                }
+            }
+        }
+    "#;
+
+    execute_graphql(ctx, query, json!({ "id": id })).await
+}
+
+pub async fn deactivate_code_discount(
+    ctx: &ServiceContext,
+    id: &str,
+) -> Result<DiscountCodeDeactivateResp, APIError> {
+    let query = r#"
+        mutation discountCodeDeactivate($id: ID!) {
+            discountCodeDeactivate(id: $id) {
+                codeDiscountNode { id }
+                userErrors {
+                    field
+                    message
+                    code
+                }
+            }
+        }
+    "#;
+
+    execute_graphql(ctx, query, json!({ "id": id })).await
 }

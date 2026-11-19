@@ -99,7 +99,7 @@ async fn main() {
 | **`client.returns`** | GraphQL | `request`, `create`, `approve`, `decline`, `cancel`, `remove_lines`, `status`, `returnable_fulfillments`, `returnable_fulfillment`, `processable`, `suggested_financial_outcome`, `refunds`, `process` |
 | **`client.product`** | GraphQL | `variant` |
 | **`client.subscription`** | GraphQL | `create_recurring`, `create_usage`, `create_combined`, `cancel`, `extend_trial`, `update_capped_amount`, `create_usage_record`, `get_active_subscriptions` |
-| **`client.discount`** | GraphQL | `create_automatic_app_discount`, `update_automatic_app_discount`, `get_discount_nodes` |
+| **`client.discount`** | GraphQL | `create_automatic_app_discount`, `update_automatic_app_discount`, `list_discounts`, `get_discount_by_id`, `get_discount_metafield`, `list_native_discounts`, `get_code_discount_by_code`, `create_code_app_discount`, `update_code_app_discount`, `delete_automatic_discount`, `delete_code_discount`, `activate_automatic_discount`, `deactivate_automatic_discount`, `activate_code_discount`, `deactivate_code_discount` |
 | **`client.app_installation`** | GraphQL | `get_current`, `set_metafields`, `get_metafield`, `list_metafields` |
 | **`client.cart_transform`** | GraphQL | `create`, `set_metafields` |
 | **`client.shopify_functions`** | GraphQL | `list` |
